@@ -5,15 +5,19 @@
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{enumitem}
+\usepackage{}
+
 \setlist{nosep}  % compact list spacing
 \begin{document}
 
 \title{Actuarial Data Analytics -- Final Exam Notes}
-\author{}
+\author{Omar Amin}
 \date{}
 \maketitle
 
 \tableofcontents
+
+\newpage
 
 \section{Week 1: Overview of Statistical Learning and Data Analytics}
 \subsection{What is Statistical Learning?}
@@ -461,13 +465,7 @@ GAMs are very useful for combining multiple non-linear effects, and can also inc
 
 In summary, Week 5 taught us tools to model non-linear relationships: using polynomial terms, splines (including smoothing splines), local regression, and GAMs to combine multiple such fits. For the exam, remember how these methods fundamentally work (e.g., what is a spline, how does loess achieve flexibility, concept of GAM structure) and their pros/cons. You might be asked, for example, how to handle a clearly nonlinear $X$-$Y$ relationship or to interpret a GAM plot.
 
-\section{Week 6: Non-linear Models (Part II) and Logistic Regression}
-Week 6 completed non-linear methods and introduced classification with logistic regression.
-
-\subsection{More Non-linear: Splines Continued, GAMs (cont.)}
-In the first part of Week 6, we continued with non-linear regression methods:
-- We looked at \textbf{natural splines} (a type of regression spline with boundary constraints making them linear beyond boundary knots to improve tail behavior).
-- Possibly \textbf{interaction in GAMs} or combining different types of terms (the lab example had a GAM with a loess term, e.g., $lo(age, span=0.7)$ included, and an interaction $lo(year, age)$ to fit a 2D surface).
+\section{Logistic Regression and Bayes Theorem}
 
 However, the key new topic in Week 6 was \textbf{Logistic Regression}, a classification method.
 
@@ -609,7 +607,7 @@ The confusion matrix allows computing \textbf{sensitivity} (true positive rate) 
 $$p_k(x) = \mathbb{P}(Y=k|X=x) = \frac{\pi_k f_k(x)}{\sum_{I=1}^{K}{\pi_I f_I(x)}}$$
 \noindent We can estimate $\pi_k$ and $f_k(x)$ seperately and then plug in those estimatees into the equation above to obtain an estimate of $p_k(x)$. \textit{LDA}, \textit{QDA} and \textit{naive Bayes} all use different estimates of $f_k(x)$.
 
-\section{Week 7: Linear Discriminant Analysis (LDA)}
+\section{Linear/Quadratic Discriminant Analysis and KNN}
 \subsection{LDA Theory}
 
 \subsubsection{LDA for $p = 1$:}
@@ -682,22 +680,49 @@ $$\delta_k(\boldsymbol{x}) = \boldsymbol{x}\boldsymbol{\Sigma}^{-1}\boldsymbol{\
 \begin{center}
   \includegraphics[width=0.8\textwidth]{LDA Example Threshold vs Error Rate.png}
 \end{center}
-
-\noindent \textbf{ROC (Receiver Operating Characteristics) Curve:}
+\vspace{7em}
+\noindent \textbf{ROC (Receiver Operating Characteristics) Curve:} \\
+\noindent How to read: the overall performance of a classifier, summarised over all possible thresholds, is given by the \textit{area under the (ROC) curve} (AUC). An ideal ROC curve will hug the top left corner, so the larger the AUC the better the classifier.
 \begin{center}
   \includegraphics[width=0.8\textwidth]{LDA Example ROC Curve.png}
 \end{center}
-XXXX LMAO \\
+\phantom{i}\\
 
-**Pros:** 
-- LDA can be more stable than logistic when classes are well-separated or if $n$ is small, since it estimates fewer parameters if $p$ small (logistic estimates $\beta$ vector; LDA estimates $\mu_k$ and common $\Sigma$, which is similar complexity but slight differences). 
-- It naturally extends to $K>2$ (logistic would need multinomial approach).
-- If Gaussian assumptions hold, LDA is the Bayes optimal classifier.
+\subsection{Confusion Matrices and Measures for Classification}
 
-**Cons:** 
-- If the Gaussian assumption or equal covariance assumption is badly wrong, LDA might perform poorly. For example, if each class has different covariance, QDA (Quadratic DA) is needed.
-- Linear boundary might be too restrictive if true boundary is nonlinear (though then QDA or other methods would be better).
-- LDA can struggle if $p$ is large and $n$ is not, because $\Sigma$ estimation is hard in high dimensions (could use regularized LDA or dimension reduction before LDA in those cases).
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{Classificaiton Confusion Matrix Definition.png}
+\end{center}
+
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{Measures of Classification.png}
+\end{center}
+
+\subsubsection{Confusion Matrices in R}
+\begin{verbatim}
+table(predictions, response variable)
+mean(predictions == response variable) # true positive rate
+\end{verbatim}
+
+\subsection{Quadratic Discriminant Analysis (QDA):}
+Assumes that an observation from the $k$th class is one of the form $\boldsymbol{X} \sim N(\boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)$, so unique covariance matrices for each class. Therefore we can derive:
+\begin{align*}
+    \delta_{x}(\boldsymbol{x}) &= -\frac{1}{2}(\boldsymbol{x} - \boldsymbol{\mu}_k)\boldsymbol{\Sigma}_{k}^{-1}(\boldsymbol{x - \boldsymbol{\mu}_k})^\top - \frac{1}{2}\log|\boldsymbol{\Sigma}_k| + \log(\pi_k) \\
+    &= -\frac{1}{2}\boldsymbol{x}\boldsymbol{\Sigma}_k^{-1}\boldsymbol{x}^\top + \boldsymbol{x}\boldsymbol{\Sigma}_{k}^{-1}\boldsymbol{\mu}_{k}^{\top} - \frac{1}{2}\boldsymbol{\mu}_k\boldsymbol{\Sigma}_k^{-1}\boldsymbol{\mu}_k^{\top} - \frac{1}{2}\log|\boldsymbol{\Sigma}_k| + \log(\pi_k)
+\end{align*}
+
+\noindent Then we plug in estimates for $\boldsymbol{\Sigma}_k$ and $\boldsymbol{\mu}_k$ to assign an observation to the class for which this quantity is the largest, $\boldsymbol{x}$ appears as a quadratic function in the equation above so that's why its a QDA.
+
+\subsubsection{When to use QDA or LDA?}
+\noindent The answer depends on the bias-variance trade-off:
+\begin{itemize}
+    \item LDA is much less flexible classifier than QDA, which lead to lower variance. Since, for $p$ predictors, QDA estimates $K\frac{p(p+1)}{2}$ params. and LDA estaimtes $\frac{p(p+1)}{2}$ params.
+    \item If LDA's assumption on common covariance matrix is not appropriate, then it will result in higher bias
+    \item LDA tends to be a better bet than QDA if there are relatively fewer training observations and so reducing variance is crucial.
+    \item QDA is recommended if the training set is very large, or if the assumption of common covariance matrix for the $K$ classes is clearly untenable (not that great).
+\end{itemize}
+
+
 
 \subsection{LDA in R (Example: Smarket Data continued)}
 We apply LDA to the Smarket data (Years <2005 as training, 2005 as test) to compare with logistic:
@@ -737,19 +762,6 @@ and then check sensitivity etc. Typically with equal priors and costs, threshold
 
 \textbf{Interpretation:} LDA finds a linear combination of Lag1 and Lag2 that separates \texttt{Up} vs \texttt{Down}. We could examine \texttt{lda\_pred\$x\$}, which is the discriminant value $x^\top \hat{\Sigma}^{-1}(\hat{\mu}_{\text{Up}} - \hat{\mu}_{\text{Down}})$ (one dimension because two classes yield one discriminant axis). We could see how a cutoff on that corresponds to the classification boundary.
 
-\subsection{Quadratic Discriminant Analysis (QDA) Theory}
-QDA is similar to LDA but allows each class to have its own covariance matrix $\Sigma_k$. So the discriminant function becomes:
-\[ \delta_k(x) = -\frac{1}{2}(x-\mu_k)^T \Sigma_k^{-1}(x-\mu_k) - \frac{1}{2}\ln|\Sigma_k| + \ln \pi_k. \]
-The decision boundaries satisfy $\delta_k(x)=\delta_\ell(x)$, which typically results in a quadratic equation in $x$ (hence non-linear boundary).
-
-QDA uses more parameters (each $\Sigma_k$ separate), so it’s more flexible but needs more data to estimate. If $p$ is not too low, QDA might overfit or be unstable, but if each class really has distinct covariance structure, QDA is better.
-
-**When to use which:** If the decision boundary is linear, LDA (or logistic) is fine and QDA will unnecessarily use extra parameters (higher variance). If the boundary is quadratic, QDA can capture that while LDA cannot. As a rule of thumb: if $n$ is large and you suspect non-linear boundaries, use QDA; if $n$ is smaller or boundary nearly linear, use LDA.
-
-\textbf{Pros QDA:} More flexible decision boundaries (curved). Can model cases where one group has much different variability than another (like one class more spread out).
-
-\textbf{Cons QDA:} Many parameters to estimate ($\Sigma_k$ each has $\frac{p(p+1)}{2}$ parameters). It requires enough data in each class to estimate those well, otherwise it might overfit.
-
 \subsection{LDA/QDA in R (Example: Weekly Data or Simulated)}
 Using the \texttt{Smarket} example above, QDA is just:
 \begin{verbatim}
@@ -777,24 +789,89 @@ To predict class for an observation $x_0$, find the $K$ training observations cl
 \[ \Pr(Y=j|X=x_0) = \frac{1}{K} \sum_{i \in N_0} I(y_i = j), \] 
 where $N_0$ is the index set of the $K$ nearest neighbors of $x_0$. Then assign the class with highest estimated probability.
 
-KNN is very flexible: as $K \to n$, it becomes very smooth (predict majority of entire training set = always most frequent class, high bias, low variance). As $K \to 1$, it can get very wiggly (each point is basically its own neighborhood, can overfit noise, low bias, high variance). We choose $K$ by cross-validation typically.
+\subsubsection{Choosing a K Value}
+\begin{itemize}
+    \item KNN is very flexible: as $K \to n$, it becomes very smooth (predict majority of entire training set = always most frequent class, high bias, low variance).
+    \item As $K \to 1$, it can get very wiggly (each point is basically its own neighborhood, can overfit noise, low bias, high variance).
+    \item We choose $K$ by cross-validation typically.
+\end{itemize}
 
-**Pros:** 
-- Simple, no assumptions about shape of decision boundary.
-- Can work well if decision boundary is very irregular.
-- Effective if $n$ is very large (lots of data) and relationship is hard to parametric form.
+\subsubsection{Pros an cons of KNN approach}
+\begin{itemize}
+    \item \textbf{Pros:}
+        \begin{enumerate}
+            \item The algorithm is simple and easy to implement.
+            \item There is no need to build a model, tune several parameters, or make additional assumptions (like shape of decision boundary).
+            \item The algorithm is versatile. It can be used for classification and regression.
+            \item Effective if $n$ is very large (lots of data) and relationship is hard to parametric form.
+        \end{enumerate}
+    \item \textbf{Cons:}
+        \begin{enumerate}
+            \item No explicit model, so no interpretability beyond "these neighbors vote".
+            \item Doesn’t give confidence intervals or the like, though one can derive some asymptotic analysis if needed.
+            \item Slow if $n$ is large (need to compute distances to all points for each prediction, though can use indexing structures to speed up).
+            \item Curse of dimensionality. KNN works poorly if $p$ is large, because distance in high dimension becomes less meaningful (all points become far). Requires feature scaling or selection and often needs a lot of data.
+        \end{enumerate}
+\end{itemize}
 
-**Cons:** 
-- \textbf{Curse of dimensionality:} KNN works poorly if $p$ is large, because distance in high dimension becomes less meaningful (all points become far). Requires feature scaling or selection and often needs a lot of data.
-- No explicit model, so no interpretability beyond "these neighbors vote".
-- Slow if $n$ is large (need to compute distances to all points for each prediction, though can use indexing structures to speed up).
-- Doesn’t give confidence intervals or the like, though one can derive some asymptotic analysis if needed.
+\subsection{Comparison of Logistic regression and LDA}
+\noindent Both methods produce a linear decision boundary, the only difference between the two approaches is that $\beta_0$ and $\beta_1$ are estimated by MLE, whereas $c_0$ and $c_1$ are computed using the estaimtes mean and variance from a normal distribution (also holds for $p > 1$). \\
 
-**Comparison of LDA vs Logistic vs KNN:**
-- If classes are well-separated and linear boundary, all 3 do fine; logistic and LDA will give similar results (LDA might be a bit better if distribution is roughly normal), KNN with a reasonable $K$ will also approach Bayes error if $n$ large enough.
-- If boundary is non-linear, LDA/logistic (linear) will have higher bias error, KNN can capture the non-linearity if $n$ is sufficient (lower bias) but might have higher variance (especially in regions with few data).
-- If $p$ is large and $n$ moderate, logistic/LDA (parametric) might outperform KNN (non-parametric) because KNN suffers in high dims (needs exponentially more data).
-- If $n$ is very large, the flexibility of KNN can shine (it is "lazy" and uses data near the query).
+\noindent Proof: logistic regression $\log(\frac{p_1(x)}{1-p_{1}(x)}) = \beta_0 + \beta_1 x$ and LDA $\log(\frac{p_1(x)}{1-p_1(x)}) = \log(\frac{p_1(x)}{p_2(x)}) = \log\Bigg( \frac{\pi_1 e^{-\frac{(x-\mu_1)^2}{2\sigma^2}}}{\pi_2e^{\frac{(x-\mu_2)^2}{2\sigma^2}}} \Bigg) = \log(\pi_1) - \log(\pi_2) + \frac{\mu_2^2 + \mu_1^2}{2\sigma^2} + \frac{\mu_1 - \mu_2}{\sigma^2}x = c_0 + c_1x$ \\
+
+\noindent They do not always produce the similar results, since LDA requires a normal assumption with a common covariance matrix. Logistic regression can outperform LDA if this assumption is not met, and vice versa.
+
+\subsection{KNN, QDA vs Logistic regression and LDA}
+\begin{itemize}
+    \item KNN is completely non-parametric method, and no assumptions are needed about the shape of the decision boundary.
+    \item When decision boundary is highly non-linear, KNN is likely to outperform LDA and logistic regression (as they will have higher bias)
+    \item KNN doesn't tell us which predictors are important: no inference results for KNN (if $n$ is sufficient lower bias but might have higher variance)
+    \item QDA is a compromise with a quadratic decision boundary. Not as flexible as KNN but QDA can perform better in the presence of a limited training dataset, as it makes assumptions of form of decision boundary.
+\end{itemize}
+
+\subsection{Six scenarios of classification comparison ($p=2$)}
+\begin{enumerate}
+    \item 20 training observations in each of two classes. Observations were uncorrelated normal r.v.'s with a different mean in each class.
+        \begin{itemize}
+            \item Suits LDA assumptions very well
+            \item Logistic regression performance similar to LDA, and QDA is slightly worse as its more flexible than LDA
+            \item KNN didn't perform well, as it didn't have much advantage on bias reduction in this linear decision boundary case
+        \end{itemize}
+    \item Same as S1, except that the two predictors had a correlation of $-0.5$
+        \begin{itemize}
+            \item Similar to S1 performances
+        \end{itemize}
+    \item $X_1$ and $X_2$ from $t$-distribution, 50 observations per class. Decision boundary is still linear, and so fit into LR framework.
+        \begin{itemize}
+            \item LR worked very well
+            \item Normal assumption are not met here, LDA worked slightly worse than LR
+            \item QDA method deteriorated since non-normality
+            \item KNN didn't perform well, however KNN-CV improved moderately
+        \end{itemize}
+    \item Normal dist. data, corr of $0.5$ between predictors in the first class, and corr of $-0.5$ between predictors in the second class.
+        \begin{itemize}
+            \item QDA assumption, and results in a quadratic decision boundary. So best method
+        \end{itemize}
+    \item Normal dist. with uncorrelated predictors. However, responses were samples from logistic function using $X_1^2$ and $X_2^2$, and $X_1 \times X_2$ as predictors. (Quadratic decision boundary)
+        \begin{itemize}
+            \item QDA outperforms linear method
+            \item KNN-CV had improved performance as the data became more complex
+        \end{itemize}
+    \item Same as S5, responses were sampled from more complicated non-linear function.
+        \begin{itemize}
+            \item KNN-CV method outperformed others
+            \item QDA couldn't adequately model the data
+            \item KNN-1 performed poorly (since level of smoothness not chosen correctly)
+        \end{itemize}
+\end{enumerate}
+
+\subsection{Summary of LDA vs QDA vs Logistic Regression vs KNN}
+\begin{itemize}
+    \item When true decision boundary is linear (or close to), LR and LDA tend to work better. If normality is absent, then LE outperforms LDA.
+    \item When true decision boundary is quadratic or moderate non-linear, QDA would outperform LR and LDA
+    \item KNN-CV is the most robust method. Performs relatively well in most cases. Outperforms when true decision boundary is very non-linear and the normality assumption is not met.
+    \item KNN-1 is the worst performed approach in most cases.
+\end{itemize}
 
 \subsection{KNN in R (Example: Caravan Insurance, or Smarket with Lag predictors)}
 R has \texttt{knn()} in \texttt{class} package to do KNN classification given training and test sets.
@@ -838,40 +915,123 @@ Exam-wise, be prepared to:
 - Interpret confusion matrix, sensitivity, specificity.
 - Possibly discuss how to choose $K$ in KNN or how to choose threshold in logistic/LDA depending on context (like credit default, where false negative is worse, use lower threshold etc.).
 
-\section{Week 8: QDA, KNN (cont.) and Introduction to Tree-Based Methods}
-Week 8 finished classification (QDA, KNN as above) and introduced \textbf{Decision Trees} for classification and regression.
+\section{Trees and Support Vector Machines}
 
 \subsection{Decision Trees Theory (Classification Trees)}
-A \textbf{decision tree} is a hierarchical model that partitions the feature space into rectangles (or more complex regions) and fits a simple model (constant for regression, majority vote for classification) in each region.
+A \textbf{decision tree} is a hierarchical model that partitions the feature space into rectangles (or more complex regions) and fits a simple model (constant for regression, majority vote for classification) in each region. \\
 
-For \textbf{classification trees}: 
-We recursively split the data based on questions of the form "$X_j < c$?" to create branches. At each node, the algorithm chooses the feature $X_j$ and cutoff $c$ that results in the largest decrease in impurity for the resulting two child nodes. \textbf{Impurity measures}:
-- \textbf{Gini index}: $G = \sum_{k=1}^K \hat p_{mk}(1 - \hat p_{mk}) = \sum_k \hat p_{mk}(1 - \hat p_{mk})$ for node $m$. For binary, $G = 2 \hat p(1-\hat p)$. Ranges 0 (pure node) to max 0.5 (even mix of two classes).
-- \textbf{Entropy}: $D = -\sum_{k} \hat p_{mk}\log \hat p_{mk}$. Also 0 for pure, and max $\log K$ for uniform.
-- \textbf{Classification error rate} could also be used ($1 - \max_k \hat p_{mk}$), but it's less sensitive to changes in node composition so Gini or entropy are preferred for growing the tree.
+\noindent \textbf{How to construct the regions:} Divide the predictor space into high-dimensional boxes. Goal is to find boxes $R_1, ..., R_j$ that minimise the RSS, given by: $\sum_{j=1}^{J}\sum_{i\in R_j}{(y_i - \hat{y}_{R_j})^2}$. Where $\hat{y}_{R_j}$ is the mean response for hte training observations within the $j$th box. Then take \textit{top-down} or \textit{recursive binary splitting} (\textit{greedy}) approach.
+\\
+\begin{itemize}
+    \item \textit{Top-down}: begin at top of tree, successively splits the predictor space; each split indicated by two new branches further down;
+    \item \textit{Greedy}: each step of tree-building process makes the best split at that particular step, rather than looking ahead and picking a split that will lead to a better tree in some furher step.
+\end{itemize}
+\phantom{i} \\
 
-At each split, we pick the variable and cutoff that maximize the reduction in Gini or entropy (i.e., maximize purity gain in children). We continue until some stopping criterion (like minimum leaf size or no improvement possible).
+\noindent  \textbf{Recursive binary splitting}:
+\begin{enumerate}
+    \item Select $X_j$ and the particular way of splitting its predictor space which leads to greatest possible reduction in RSS.
+        \begin{enumerate}[label=\roman*]
+            \item Examine all predictors $X_1,...,X_p$ and all possible ways of splitting the predictor space of each predictor
+                \begin{itemize}
+                    \item For any numerical predictor $X_j$ and cutpoint $s$, we define: $R_1(j,s) = \{ \boldsymbol{X}|X_j < s \}$ and $R_2(j,s) = \{ 
+                    \boldsymbol{X}|X_j \geq s \}$.
+                    \item For any categorical predictor $X_j$ and any subset of its classes $s$, we define: $R_1(j,s) = \{ \boldsymbol{X}|X_j \in s \}$ and $R_2(j,s) = \{ \boldsymbol{X}|x_j \notin s \}$.
+                \end{itemize}
+            \item Seek the value of $j$ and $s$ that minimise the expression: $\sum_{i: \boldsymbol{x} \in R_1(j,s)}{(y_i - \hat{y}_{R_1(j,s)})^2} + \sum_{i: \boldsymbol{x}\in R_2(j,s)}{(y_i - \hat{y}_{R_2(j,s)})^2}$
+        \end{enumerate}
+    \item Repeat the process, looking for the best predictor and best ways of splitting the data further so as to minimise the RSS within each of the resulting regions. Instead of splitting the entire predictor space, we split one of the two previously identified regions. As a result, we have on more region.
+    \item Then look to split one of the previously constructed regions, so as to minimise the RSS. This process continues until a stopped criterion is reached (e.g. no region contains more than $5$ observations.
+    \item Output: $\hat{f}_{\text{tree}}(\boldsymbol{x}) = \sum_{m=1}^{M} \text{ave}(y_i|\boldsymbol{x}_i \in R_m)I_{\boldsymbol{x} \in R_m}$. Where $M$ is the number of terminal nodes of the generated tree.
+\end{enumerate}
+\phantom{i} \\
 
-This results in a full tree which likely overfits. Then we typically \textbf{prune} the tree:
-We consider a sequence of subtrees by pruning weaker branches (using cost-complexity pruning which adds a penalty $\alpha$ per terminal node). Choose $\alpha$ by cross-validation (the value that gives best CV error), get the corresponding pruned tree.
+\noindent \textbf{Remarks on binary recursive splitting:}
+\begin{itemize}
+    \item Finding the optimal split:
+        \begin{itemize}
+            \item Is straightforward for continuous predictors since the data can be ordered in a natural way
+            \item Easy for binary predictors since there is only one possible split point
+            \item More complicated for predictors with more than two categories. Indeed, for a predictor with $q$ unordered categories, there are $2^{q-1}-1$ possible partitions of the $q$ categories into two groups. So for large $q$, the computation can be very time consuming.
+        \end{itemize}
+    \item Why binary splitting:
+        \begin{itemize}
+            \item Multi way splits fragment the data too quickly $\Rightarrow$ leaving insufficient data at the next level down.
+            \item Also, multi way splits can be achieved by a series of binary splits.
+        \end{itemize}
+\end{itemize}
 
-In classification, each terminal node predicts the majority class (and we can interpret the predicted probability as the proportion of training data in that class).
+\subsubsection{Tree Pruning}
+\begin{itemize}
+    \item Recursive binary splitting is likely to overfit the data, leading to poor test data performance, as the resulting tree might be too complex.
+    \item A smaller tree with fewer splits (lower flexibility) might lead to lower variance and better interpretation at the cost of little bias.
+    \item One alternative: build the tree only as the decrease in the RSS due to each split exceeds some threshold. Drawback: A seemingly worthless split early on in the tree might be followed by a very good split -- a split that leads to a large reduction in RSS later on.
+    \item A better alternative: to grow a very large tree $T_0$, and then prune it back in order to obtain a \textit{subtree}.
+\end{itemize} \phantom{i}
 
-\textbf{Regression trees} similarly use splits to minimize RSS within each region:
-At a node, pick split that best reduces MSE (or RSS). The predicted value in each leaf is just the average of responses in that leaf. They also need pruning to avoid overfitting.
+\noindent \textbf{Cost complexity pruning:}
+\begin{itemize}
+    \item Instead of considering every possible subtree, consider a sequence of trees indexed by a non-negative tuning parameter $\alpha$
+    \item For each $\alpha$, there is a subtree $T \subset T_0$ such that: $\sum_{m=1}^{|T|}\sum_{i: x_i \in R_m}{(y_i - \hat{y}_{R_m})^2} + \alpha|T|$ is small as possible. $|T|$ is as number of terminal nodes of tree $T$, $R_m$ is the box corresponding to the $m$th terminal node.
+\end{itemize} \phantom{i}
 
-**Pros of trees:**
-- Very interpretable (can visualize as flowchart, see which variables are important and thresholds).
-- Handle interactions and non-linearities automatically (since splits can carve out appropriate regions).
-- Non-parametric (no assumption on function form).
-- Can handle categorical predictors directly (split by categories).
-- Invariant to monotonic transformations of individual predictors (splitting on $X$ or $\log X$ yields similar partitions after appropriate threshold transform).
-- For missing data, some implementations can handle via surrogate splits.
+\noindent \textbf{The effect of tuning parameter $\alpha$ in cost complexity pruning}
+\begin{itemize}
+    \item $\alpha$ controls trade-off between the subtree's complexity and its fit to the training data.
+    \item When $\alpha = 0, \: \; T = T_0$.
+    \item When $\alpha$ increases, the formula above tends to be minimised for a smaller subtree.
+    \item Select $\alpha$ using a validation set or using cross-validation.
+\end{itemize}
 
-**Cons:**
-- Single trees usually are not as predictive as some other methods (like ensembles or parametric models if linear structure is correct). They have relatively high variance.
-- They can be unstable: a small change in data can change splits in top levels.
-- Without pruning or depth control, they overfit heavily (i.e., memorize single observations in leaves).
+\subsubsection{Building a regression tree -- an algorithm}
+\begin{enumerate}
+    \item Use recursive binary splitting to grow a large tree on training data. Stop when each terminal node has fewer than some minimum number of observations.
+    \item Apply cost complexity pruning to the large tree in order to obtain a sequence of best subtrees, as a function of $\alpha$.
+    \item Use $K$-fold cross-validation to choose $\alpha$. That is, divide the training observations into $K$ folds.  Average the following results for each value of $\alpha$, and pick $\alpha$ to minimse the average error.
+        \begin{enumerate}
+            \item Repeat steps 1 and 2 on all but the $k$th fold of the training data.
+            \item Evaluate the mean squared prediction error on the data in the left-out $k$th fold, as a function of $\alpha$
+        \end{enumerate}
+    \item Return the subtree from Step 2 that corresponds to hte chosen value of $\alpha$
+\end{enumerate}
+
+\subsubsection{RSS vs classification error rate}
+\noindent Can't use RSS. Use classification error rate, which is the fraction of the training observations in a region that do not belond to hte most common class:
+$$E = 1 - \max_{k}{(\hat{p}_{mk})}$$
+\noindent Where $\hat{p}_{mk}$ is the proportion of training observations in the $m$th region are from the $k$th class. \\
+
+\noindent \textbf{Alternatives to E:} \\
+\begin{itemize}
+    \item \textit{Gini index}: $G = \sum_{k=1}^{K}{\hat{p}_{mk}(1-\hat{p}_{mk})}$, measure of total variance across the $K$ classes.
+        \begin{itemize}
+            \item Small G if all $\hat{p}_{mk}$ are close to either $0$ or $1$. So small G indicates that a terminal node contains predominantly observations from a single class.
+        \end{itemize}
+    \item \textit{Entropy}: $D = -\sum_{k=1}^{K}{\hat{p}_{mk}\log(\hat{p}_{mk})} \geq 0$.
+        \begin{itemize}
+            \item Small D if all $\hat{p}_{mk}$ are close to $0$ or $1$. Small D indicates that the $m$th node is pure (a single class dominates the node).
+        \end{itemize}
+\end{itemize} \phantom{i}
+
+\noindent \textbf{When to use which classification error rate:}
+\begin{itemize}
+    \item When \textit{building} a classification tree, either the \textit{Gini index} or \textit{entropy} can be used to evaluate the quality of a particular split. As they are more sensitive to node purity than the classification error rate.
+    \item When \textit{pruning} a classification tree, any measure can be used.
+    \item if \textit{prediction accuracy} of the final pruned tree is the goal, then the classification error rate is more preferable.
+\end{itemize}
+
+\subsubsection{Advantages and disadvantages of trees}
+\noindent \textbf{Advantages:}
+\begin{itemize}
+    \item Trees are easily explainable. They mirror human decision making.
+    \item Can be explained graphically, and are easily interpreted even by a non-expert.
+    \item Can easily handle qualitative predictors without the need for dummy variables.
+\end{itemize} \phantom{i}
+
+\noindent \textbf{Disadvantages:}
+\begin{itemize}
+    \item Do not have the same level of predictive accuracy as other regression and classification approaches.
+    \item Can be very non-robust. A small change in the data can cause a large change in the final esimated tree.
+\end{itemize}
 
 \subsection{Decision Trees in R (Example: Carseats Data)}
 Using the \texttt{tree} library:
@@ -920,52 +1080,128 @@ Given that, probably exam expects:
 - Possibly to perform manual classification on a small tree given an observation.
 - Knowledge of advantages/disadvantages of trees vs linear models or vs other ML methods.
 
-They likely do not emphasize bagging/RF/boosting in exam if not covered deeply (maybe just conceptual question if any). But since not on schedule explicitly, maybe skip.
-
-\section{Week 9: Support Vector Classifiers and Maximum Margin}
-Week 9 introduced the concept of \textbf{maximal margin classifier} and \textbf{Support Vector Machines (SVM)} for classification.
-
 \subsection{Maximal Margin Classifier (Hyperplane Classification)}
-For separable classes, a linear classifier can perfectly separate them with many possible hyperplanes. The \textbf{maximal margin classifier} chooses the separating hyperplane that maximizes the margin, i.e., the minimum distance from the hyperplane to any training point. This is the "widest street" that separates the classes. The points that lie on the margin boundaries are the \textbf{support vectors}; they “support” the optimal hyperplane (if they moved, the hyperplane would move).
+\noindent \textbf{A hyperplane}: In a $p-$dimensional space, a hyperplane is a flat affine subspace of the dimension $p-1$. Given by $\beta_{0} + \beta_{1}X_1 +...+\beta_{p}X_p = 0$. \\
 
-If data are separable and we have unlimited flexibility, the max margin classifier is very sensitive to outliers (one weird point can drastically shift the boundary if it's the support vector).
+\noindent \textbf{Classification using hyperplanes:} For equation above, for point $X = (X_1,...,X_p)^{\top}$, if it $= 0$ then $X$ lies on hyperplane. If its $> 0$ its on one side of hyperplane, if its $< 0$ its on the other side. \\
 
-\subsection{Support Vector Classifier (Soft Margin SVM)}
-To handle non-separable cases or allow some misclassifications, we introduce a \textbf{soft margin}. The \textbf{support vector classifier} (also called soft-margin SVM for linear kernel) solves:
-Maximize margin $M$ subject to $y_i(\beta_0 + \beta^T x_i) \ge M(1 - \xi_i)$ for each $i$, with slack variables $\xi_i \ge 0$ and $\sum \xi_i$ penalized. There's a tuning parameter $C$ (or $\lambda$ equivalently) that determines how much slack we allow: 
-- If $C$ is large, slack penalty high, the classifier will tolerate very few misclassifications (nearly hard margin).
-- If $C$ is small (low penalty on slack), it will allow more violations (wider margin but more mispoints).
+\noindent \textbf{Example with classes $y_i \in \{ -1,1 \}$:} If $\beta_{0} + \beta_{1}X_{i1} + ... \beta_{p}X_{ip} > 0 \text{ if } y_i = 1$ and $\beta_{0} + \beta_{1}X_{i1} + ... \beta_{p}X_{ip} > 0 \text{ if } y_i = -1$. Therefore a separating hyperplane has hte property that $y_i(\beta_0 + \beta_1 X_{i1} + ... + \beta_p X_{ip}) > 0, \text{ for } i=1,...,n$. Main \textbf{assumption} is that a separating hyperplane exists. \\
 
-In practice, one solves a quadratic optimization problem:
-Minimize $\frac{1}{2}\|\beta\|^2 + C \sum_i \xi_i$ subject to $y_i(\beta_0 + \beta^T x_i) \ge 1 - \xi_i$, $\xi_i \ge 0$. (This is formulation in primal, dual leads to often what we implement).
+\noindent \textbf{Confidence of classification of test observations}: If test observation is $x^*$, let $f(x^*) = \beta_{0} + \beta_{1}X_1^* + ... + \beta{p}X_{p}^*$. If $f(x^*)$ is far from $0$, $x^*$ lies far from the hyperplane and we can be confident in our class assignment for $x^*$. Conversely, if $f(x^*)$ is close to $0$, $x^*$ is near the hyperplane and we are less certain above the class assignment for $x^*$. \\
 
-This finds a hyperplane that balances margin width and classification errors. Only points either on margin or inside margin (or misclassified) have $\alpha_i >0$ in dual - those are the support vectors used to determine the hyperplane.
+\noindent \textbf{The Maximal Margin Classifier:} The separating hyperplane that is farthest from the training observations. Can also lead to over fitting when $p$ is large. The maximal margin hyperplane depends directly on the support vectors, but not on the other observations which is very wasteful. \\
 
-\textbf{Kernels and Non-linear SVM:}
-We can implicitly map $X$ to a higher-dimensional space via a kernel function to allow non-linear boundaries. Common kernels:
-- \textbf{Polynomial kernel:} $K(x,z) = (1 + x^T z)^d$ (SVM then fits a polynomial boundary of degree $d$).
-- \textbf{Radial kernel:} $K(x,z) = \exp(-\gamma \|x-z\|^2)$. It leads to a highly non-linear boundary (like a Gaussian mixture type decision boundary) and essentially allows a flexible decision surface by placing bumps around support vectors.
+\noindent \textbf{Construction of the Maximal Margin Classifier:} If $n$ training observations and associated class labels $y_1,...,y_n \in \{ -1,1 \}$. Maximal margin hyperplane is solution to the optimisation problem:
+\begin{align}
+    &\max_{\beta_0,\beta_1,...,\beta_p,M}M \label{eq:max_class_1} \\
+    &\text{subject to } \sum_{j=1}^{p}{\beta_{j}^{2}} = 1 \label{eq:max_class_2} \\
+    &y_i(\beta_0 + \beta_1X_{i1} + ... + \beta_{p}X_{ip}) \geq M, \forall i=1,...,n \label{eq:max_class_3}
+\end{align} 
 
-The kernel trick means we don’t explicitly do the transformation; we just compute $K(x_i, x_j)$ in dual optimization.
+\noindent Worded explanation: 
+\begin{itemize}
+    \item \eqref{eq:max_class_3} makes sure each observation will be on correct side of hyperplane (given $M>0$)
+    \item The constraint \eqref{eq:max_class_2} adds meaning to \eqref{eq:max_class_3}, as this constraints means the perpendicular distance from the $i$th observation to the hyperplane is given by $y_i(\beta_0 + \beta_1X_{i1} + ... + \beta_p X_{ip})$
+    \item Also \eqref{eq:max_class_2} and \eqref{eq:max_class_3} ensure that each observation is on the correct side of the hyperplane and at least a distance $M$ from the hyperplane (thats why we want to max $M$ in \eqref{eq:max_class_1}).
+\end{itemize}
 
-$\gamma$ in RBF determines how localized the influence of a single training point is:
-- Large $\gamma$: $K$ decays quickly, each SV influences only very near points $\to$ very wiggly boundary (low bias, high variance).
-- Small $\gamma$: $K$ decays slowly, behaves more like a global linear function $\to$ smoother boundary (high bias, low variance).
+\subsection{Support Vector Classifiers}
 
-$C$ as before controls soft margin (tradeoff between errors and margin smoothness).
+\noindent \textbf{Issues with maximal margin classifier:} In many cases no separating hyperplane exists (no solution with $M>0$) of the optimisation problem. If separating hyperplane exists it may not be desirable (as its extremely sensitive to a change in a single observation suggesting it may have over fit the data). \\
 
-Thus, SVM has hyperparameters: $C$ and kernel-specific (like degree $d$, or $\gamma$ for RBF).
+\noindent \textbf{Soft Margin Classifier:} (same as support vector classifier). Instead of seeking largest possible margin, now we allow some observations to be on the incorrect side of the margin, or even the incorrect side of the hyperplane. \\
 
-**Pros:** 
-- Can efficiently handle high-dimensional data (especially when $p$ large relative to $n$, SVM can still perform by finding good separating directions, whereas very flexible methods like KNN would fail).
-- Kernel trick allows non-linear boundaries while still solving a convex optimization (so one solution, no local minima to worry about).
-- Often works well out-of-the-box for many classification problems if properly tuned.
+\noindent \textbf{Construction of Support Vector Classifier:} Need to optimise the following problem:
+\begin{align}
+    &\max_{\beta_0,\beta_1,...,\beta_p,\epsilon_1,...,\epsilon_n,M}{M} \label{eq:support_vec_class_1} \\
+    &\text{subject to } \sum_{j=1}^{p}{\beta_j^2} = 1 \label{eq:support_vec_class_2} \\
+    &\epsilon_{i} \geq 0, \sum_{i=1}^{n}\epsilon_i \leq C \: (C \geq 0 \label{eq:support_vec_class_3})
+\end{align}
+\begin{itemize}
+    \item $M$ is width of margin, so we want to max this
+    \item $\epsilon_1,...,\epsilon_n$ are \textit{slack variables} allowing observation to be on wrong side.
+        \begin{itemize}
+            \item $\epsilon_i = 0$: $i$th observation is on the right side of the margin (default)
+            \item $0< \epsilon < 1$: $i$th observation has violated the margin, but is on the right side of the hyperplane
+            \item $\epsilon>1$: $i$th observation is on the wrong side of the hyperplane
+        \end{itemize}
+    \item $C$ is the budget for the amount that the margin can be violated by the $n$ observations.
+        \begin{itemize}
+            \item $C=0$: no tolerance of violations to the margin
+            \item $C > 0$: no more than $C$ observations can be on the wrong side of the hyperplane
+            \item As $C$ increases, we become more tolerant of violations to the margin, and so the margin will widen.
+            \item Choose $C$ using cross-validation
+        \end{itemize}
+\end{itemize} \phantom{i}
 
-**Cons:** 
-- Need to choose kernel and tune parameters (requires careful CV).
-- SVM output is not directly probabilistic (one can calibrate it, but originally it's just decision function).
-- If $n$ is large, SVM (especially with non-linear kernel) can be slow (computational cost grows with $n^2$ memory potentially).
-- Harder to interpret than logistic or tree (though one can examine support vectors to see what instances are crucial, it's not as straightforward story as "this variable > x then class").
+\noindent \textbf{Role of $\boldsymbol{C}$ in bias-variance trade-off (opposite interpretation in R!):}
+\begin{itemize}
+    \item When $C$ is small, we seek narrow margins that are rarely violated. Classifier that is highly fit to data, low bias but high variance.
+    \item When $C$ is larger, margin is wider and we allow more violations. Easier to obtain a classifier, potentially more biased but may have lower variance.
+\end{itemize}
+
+\subsection{Support Vector Machines}
+
+Enlarge the feature space to get a non-linear decision boundary. Can be done by using: higher-order polynomial terms, interaction terms of the form $X_j X_{j'}$ for $j \neq j'$, or other functions of the predictors rather than polynomials. Computations could become unmanageable if lots. \\
+
+\noindent Inner product $\langle x_i, x_{i'} \rangle = \sum_{j=1}^{p}x_{ij}x_{i'j}$. Linear support vector classifier: $f(x) = \beta_0 + \sum_{i=1}^{n}{\alpha_{i}\langle x, x_{i} \rangle}$. \\
+
+\noindent Generalised support vector classifier, with \textit{Kernel} $K(x_i, x_{i'})$, and $S$ be collection of indices of these support points: $f(x) = \beta_0 + \sum_{i \in S}{K(x, x_{i})}$. \\
+
+\noindent \textbf{Types of Kernel functions:}
+\begin{itemize}
+    \item \textit{Linear kernel}: $K(x_i, x_{i'}) = \langle x_i, x_{i'} \rangle$. Support vector classifier case with a linear decision boundary.
+    \item \textit{Polynomial kernel}: $K(x_i, x_{i'}) = (1 + \sum_{j=1}^{p}{x_{ij}x_{{i'}j}})^d \text{ for } d \geq 1$.
+    \item \textit{Radial kernel}: $K(x_i, x_{i'}) = e^{-\gamma\sum_{j=1}^{p}(x_{ij} - x_{{i'}j})^2}$, $\gamma > 0$.
+        \begin{itemize}
+            \item High $\gamma \: (\gamma =10,100)$:
+                \begin{itemize}
+                    \item Tight decision boundary
+                    \item Risk of over fitting
+                    \item Each point influences only very close neighbours
+                \end{itemize}
+            \item Low $\gamma \: (\gamma=0.01,0.001)$:
+                \begin{itemize}
+                    \item Each point influences a wider region
+                    \item Smoother, more general decision boundary
+                    \item Risk of under fitting
+                \end{itemize}
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{SVM with More than Two Classes}
+\begin{enumerate}
+    \item One-Versus-One Classification
+        \begin{itemize}
+            \item Suppose there is $K > 2$ classes. Constructs $\binom{K}{2}$ SVM's, each of which compares a pair of classes
+            \item e.g. One SVM might compare the $k$th class, coded as $+1$, to the $k^{'}$th class, coded as $-1$
+            \item Classify a test observation using each of the $\binom{K}{2}$ classifiers, tally the number of times that the test observation is assigned to each of the $K$ classes
+            \item Final classification is performed by assigning the test observation to the class to which it was most frequently assigned in these $\binom{K}{2}$ pairwise classifications.
+        \end{itemize}
+    \item One-Versus-All Classification
+        \begin{itemize}
+            \item Suppose there is $K > 2$ classes. Fit $K$ SVM's each time comparing one of the $K$ classes to the remaining $K-1$ classes
+            \item Let $\beta_{0k}, \beta_{1k}, ..., \beta_{pk}$ denote the result from fitting an SVM comparing the $k$th class (coded as $+1$) to the others (coded as $-1$)
+            \item Let $x^*$ denote a test observation. Assign the observation to the class for which $\beta_{0k} + \beta_{1k}x_{1}^* + ... + \beta_{pk}x_{p}^*$ is the largest. Giving high level of confidence that the test observation belonds to the $k$th class rather than to any of the other classes.
+        \end{itemize}
+\end{enumerate}
+
+\subsubsection{Pros and Cons of SVM's}
+\begin{itemize}
+    \item \textbf{Pros:}
+        \begin{itemize}
+            \item Works really well with a clear margin of separation
+            \item Effective in high dimensional spaces
+            \item Only uses a subset f training data in decision function (i.e. support vectors), so it is also memory efficient.
+        \end{itemize}
+    \item \textbf{Cons:}
+        \begin{itemize}
+            \item Doesn't perform well when large data set since training time is higher
+            \item Doesn't perform well when data set has noise (i.e. trarget classes are overlapping)
+            \item SVM doesn't directly provide probability estimates
+            \item Hard to interpret (though one can examine support vectors)
+        \end{itemize}
+\end{itemize}
 
 \subsection{SVM in R (e1071 package, Example: Simulated Data)}
 Using \texttt{e1071}:
@@ -1018,17 +1254,7 @@ plot(perf)
 \end{verbatim}
 This is more detail than likely needed, but it demonstrates how to evaluate an SVM across thresholds (since SVM naturally gives distance from boundary as a score).
 
-**Exam pointers:** 
-- Understand what the support vectors are (points on or inside margin).
-- Understand effect of cost: large cost = low bias, high variance classifier (narrow margin, fewer margin violations allowed); small cost = higher bias, low variance (wide margin, more violations).
-- Effect of kernel: linear vs non-linear.
-- Possibly be able to interpret a simple SVM plot (which points are support vectors, where margin lies).
-- Possibly compute margin width if given $\beta$ (Margin = $2/\|\beta\|$).
-- Possibly write down the optimization formulation or conditions (though probably just conceptual understanding).
-- Recognize that SVM can be seen as an alternative to logistic regression that focuses on points closest to boundary (support vectors) rather than all points (logistic uses likelihood of all).
-- Know pros/cons relative to other classifiers (like SVM vs KNN vs logistic).
-
-\section{Week 10: SVM with Kernels and Principal Component Analysis (Unsupervised)}
+\section{Unsupervised Learning Methods (PCA and Clustering))}
 Week 10 wrapped up SVM (introducing kernels thoroughly) and began \textbf{Unsupervised Learning} with \textbf{PCA}.
 
 \subsection{SVM with Kernels Recap}
