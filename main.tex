@@ -5,12 +5,32 @@
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{enumitem}
-\usepackage{}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{cmap} 
+\usepackage{inconsolata} 
+\usepackage{xcolor}
+\usepackage{listings}
+
+% SETUP LISTINGS FOR R CODE CHUNKS
+\lstset{
+  language        = R,            % R syntax
+  basicstyle      = \ttfamily\small, % single style for everything
+  keywordstyle    = \color{blue},       % override coloured keywords
+  commentstyle    = \color{gray},       % override coloured comments
+  stringstyle     = \color{teal},       % override coloured strings
+  frame           = single,      % box around
+  numbers         = none,        % no line numbers
+  keepspaces      = true,        % preserve your literal spaces
+  columns         = fullflexible,% let TeX typeset each line as one run
+  breaklines      = false,       % no auto-wrap (avoid extra line-runs)
+  showstringspaces= false        % don’t mark spaces in strings
+}
 
 \setlist{nosep}  % compact list spacing
 \begin{document}
 
-\title{Actuarial Data Analytics -- Final Exam Notes}
+\title{Actuarial Data Analytics I -- Subject Notes}
 \author{Omar Amin}
 \date{}
 \maketitle
@@ -19,37 +39,36 @@
 
 \newpage
 
-\section{Week 1: Overview of Statistical Learning and Data Analytics}
+\section{Overview of Statistical Learning and Data Analytics}
 \subsection{What is Statistical Learning?}
-Statistical learning refers to \textit{``a set of tools for making sense of complex datasets''}. In actuarial data analytics, these tools help us build models and algorithms to understand data and make predictions. Statistical learning encompasses both \textbf{supervised learning} and \textbf{unsupervised learning}:
+Statistical learning refers to \textit{``a set of tools for making sense of complex datasets''}. In actuarial data analytics, these tools help us build models and algorithms to understand data and make predictions. Statistical learning encompasses both \textbf{supervised learning} and \textbf{unsupervised learning}: \\
 \begin{itemize}
     \item \textbf{Supervised learning}: We have input variables (features) $X_1, X_2, \ldots, X_p$ and an output variable $Y$. The goal is to predict $Y$ or understand its relationship with $X$. If $Y$ is quantitative (numeric), it is a \textbf{regression} problem; if $Y$ is qualitative (categorical), it is a \textbf{classification} problem.
-    \item \textbf{Unsupervised learning}: We only have features $X_1,\ldots,X_p$ and no explicit $Y$. The goal is to find patterns or groupings in the data without known responses. Examples include discovering clusters or underlying structure.
-\end{itemize}
+    \item \textbf{Unsupervised learning}: We only have features $X_1,\ldots,X_p$ and no explicit $Y$. The goal is to find patterns or groupings in the data without known responses. Examples include discovering clusters or underlying structure. 
+\end{itemize} \phantom{i}
 
-In supervised learning, the aim can be either \textbf{prediction} (accurately predicting unseen outcomes $Y$) or \textbf{inference} (understanding the effect of each $X_j$ on $Y$). We often split data into a \textbf{training set} and a \textbf{test set} to evaluate model performance on new data. A key concept is the \textbf{bias-variance trade-off}: as model flexibility increases, its bias tends to decrease but variance tends to increase. An optimal model achieves a good balance, minimizing the expected test error.
+\noindent In supervised learning, the aim can be either \textbf{prediction} (accurately predicting unseen outcomes $Y$) or \textbf{inference} (understanding the effect of each $X_j$ on $Y$). We often split data into a \textbf{training set} and a \textbf{test set} to evaluate model performance on new data. A key concept is the \textbf{bias-variance trade-off}: as model flexibility increases, its bias tends to decrease but variance tends to increase. An optimal model achieves a good balance, minimizing the expected test error.
 
 \subsection{Bias-Variance Trade-off and Model Accuracy}
-The \textbf{training error} (error on the data used to fit the model) typically decreases as model complexity increases, but the \textbf{test error} (error on new data) follows a U-shape pattern. Initially, increasing flexibility reduces bias faster than it increases variance, so test error decreases; beyond a point, variance dominates and test error rises. This is why an overly complex model can overfit the training data and perform poorly on new data.
+\noindent A more restrictive model: more interpretable, easier for the inference goal. lasso $>$ linear models $>$ GAM, trees $>$ bagging, boosting. A more flexible model: better prediction accuracy, more complicated so harder to understand how each predictor behaves in the model. bagging, boosting $>$ GAM, trees $>$ linear models $>$ lasso. \\
 
-We quantify prediction error as mean squared error for regression or misclassification rate for classification. The lowest possible error is achieved by the theoretical \textbf{Bayes classifier} or function $f(x)$ (which we usually don't know). Our goal is to approximate this with a model $\hat f(x)$. The irreducible error (noise) sets a lower bound on what error we can achieve.
+\noindent The \textbf{training error} (error on the data used to fit the model) typically decreases as model complexity increases, but the \textbf{test error} (error on new data) follows a U-shape pattern. Initially, increasing flexibility reduces bias faster than it increases variance, so test error decreases; beyond a point, variance dominates and test error rises. This is why an overly complex model can overfit the training data and perform poorly on new data. In general higher flexibility $\implies$ higher variance and less bias. \\
 
-Key definitions:
+\noindent We quantify prediction error as mean squared error for regression or mis-classification rate for classification. The lowest possible error is achieved by the theoretical \textbf{Bayes classifier} or function $f(x)$ (which we usually don't know). Our goal is to approximate this with a model $\hat f(x)$. The irreducible error (noise) sets a lower bound on what error we can achieve. \\
+
+\noindent Key definitions:
 \begin{itemize}
   \item \textbf{Bias}: error from erroneous assumptions in the learning algorithm. High bias means model is too simple to capture the true $f(x)$.
-  \item \textbf{Variance}: error from sensitivity to small fluctuations in the training set. High variance means model is too complex (overfitting noise).
-  \item \textbf{Mean Squared Error (MSE)} decomposition (for regression): $\mathbb{E}[ (Y - \hat f(X))^2 ] = (\text{Bias})^2 + \text{Variance} + \text{Irreducible Error}$. We seek to minimize bias+variance.
+  \item \textbf{Variance}: error from sensitivity to small fluctuations in the training set. High variance means model is too complex (over fitting noise).
+  \item \textbf{Mean Squared Error (MSE)} decomposition (for regression): $\mathbb{E}[ (Y - \hat f(X))^2 ] = (\text{Bias})^2 + \text{Variance} + \text{Irreducible Error}$. We seek to minimise bias+variance. $MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{f(\boldsymbol{x}_i)})^2$.
 \end{itemize}
 
-\subsection{Actuarial Context}
-Actuarial data analytics often deals with building models for insurance risks, customer behavior, or financial time series. We use regression methods for predicting costs or frequencies (e.g. claim amounts) and classification methods for predicting categorical outcomes (e.g. lapse vs. persist). Actuaries must balance model complexity with interpretability and ensure the model is not overfitting, given regulatory and business needs for explainable models.
+\newpage
 
-The rest of these notes will summarize the key topics and methods covered each week, including their theoretical background, important formulas, purpose, pros/cons, and R code examples to implement them.
-
-\section{Week 2: Linear Regression (Part I)}
+\section{Linear/Multiple Linear Regression}
 \subsection{Simple Linear Regression Theory}
 Linear regression is a \textbf{supervised learning} method for predicting a quantitative response $Y$ based on one or more predictors $X_1,\ldots,X_p$. In \textbf{simple linear regression}, we have a single predictor $X$. The model assumes an approximate linear relationship:
-\[ Y \approx \beta_0 + \beta_1 X, \]
+\[ \hat Y = \beta_0 + \beta_1 X, \]
 where $\beta_0$ is the intercept and $\beta_1$ is the slope. $\beta_1$ represents the expected change in $Y$ for a one-unit increase in $X$. The model is usually fit by \textbf{ordinary least squares (OLS)}, which finds $\hat\beta_0, \hat\beta_1$ that minimize the sum of squared residuals:
 \[ \text{RSS} = \sum_{i=1}^n (y_i - \hat\beta_0 - \hat\beta_1 x_i)^2. \]
 
@@ -60,32 +79,34 @@ where $\bar{x}$ and $\bar{y}$ are the sample means. Key formulas:
 \begin{itemize}
   \item \textbf{Predicted value:} $\hat{y}_i = \hat\beta_0 + \hat\beta_1 x_i$.
   \item \textbf{Residual:} $e_i = y_i - \hat{y}_i$.
-  \item \textbf{Coefficient standard errors} (for inference): 
+  \item \textbf{Coefficient standard errors}: 
   $\operatorname{SE}(\hat\beta_1) = \sqrt{\frac{\sigma^2}{\sum (x_i-\bar{x})^2}}$, 
-  and similarly for $\hat\beta_0$ (where $\sigma^2$ is estimated error variance).
-  \item \textbf{R-squared ($R^2$)}: The proportion of variance in $Y$ explained by $X$: 
-  $R^2 = 1 - \frac{\text{RSS}}{\text{TSS}}$, where $\text{TSS} = \sum (y_i-\bar{y})^2$.
-\end{itemize}
+  and similarly for $\operatorname{SE}(\hat\beta_0) = \sigma \sqrt{\frac{1}{n}+\frac{\bar{x}^2}{\sum_{i=1}^{n}{(x_i - \bar{x})^2}}}$ (where $\sigma^2$ is estimated error variance).
+  \item \textbf{R-squared ($R^2$) and RSE}: The proportion of variance in $Y$ explained by $X$: 
+  $R^2 = 1 - \frac{\text{RSS}}{\text{TSS}}$, where $\text{TSS} = \sum (y_i-\bar{y})^2$. Also, Residual Standard Error (RSE) = $\sqrt{RSS/(n-2)}$. The $95\%$ CI for $\hat\beta_i$ is $\hat\beta_i \pm 1.96 \times \text{SE}(\hat\beta_i), \: i=0,1$.
+\end{itemize} \phantom{i}
 
-\textbf{Purpose and Description:} Linear regression models the relationship between $X$ and $Y$ with a line. It's easy to interpret: $\beta_1$ tells the direction and magnitude of effect of $X$ on $Y$. We can use it for prediction and to quantify relationships (with confidence intervals and hypothesis tests for $\beta_1$). It's the fundamental starting point for regression analysis.
+\noindent \textbf{Purpose and Description:} Linear regression models the relationship between $X$ and $Y$ with a line. It's easy to interpret: $\beta_1$ tells the direction and magnitude of effect of $X$ on $Y$. We can use it for prediction and to quantify relationships (with confidence intervals and hypothesis tests for $\beta_1$). \\
 
-\textbf{Pros:} Simple, interpretable, fast to fit, inference tools available (t-tests, etc.). Works well if true relationship is roughly linear and error terms are homoscedastic (equal variance).
+\noindent \textbf{Pros:} \\
+\noindent Simple, interpretable, fast to fit, inference tools available (t-tests, etc.). Works well if true relationship is roughly linear and error terms are homoscedastic (equal variance).
 
-\textbf{Cons:} Only captures linear trends (unless extended), sensitive to outliers (which can drastically affect the slope), and performance degrades if relationship is non-linear or if there are important interaction effects not included. Violations of assumptions (e.g. non-constant variance, correlated errors) can invalidate inference.
+\noindent \textbf{Cons:} \\
+\noindent Only captures linear trends (unless extended), sensitive to outliers (which can drastically affect the slope), and performance degrades if relationship is non-linear or if there are important interaction effects not included. Violations of assumptions (e.g. non-constant variance, correlated errors) can invalidate inference.
 
 \subsection{Simple Linear Regression in R (Example)}
 We illustrate simple linear regression using the \texttt{Boston} housing dataset (from the \texttt{MASS} package). We predict median house value (\texttt{medv}) from proportion of low-status population (\texttt{lstat}). 
 
-\begin{verbatim}
+\begin{lstlisting}
 # Load data and packages
-library(MASS)        # contains Boston dataset
-data(Boston)         # Boston housing data
+library(MASS) # contains Boston dataset
+data(Boston) # Boston housing data
 # Fit a simple linear regression of medv on lstat
 lm_fit <- lm(medv ~ lstat, data = Boston)
 summary(lm_fit)
-\end{verbatim}
+\end{lstlisting}
 
-**Explanation:** We load the \texttt{MASS} library and the \texttt{Boston} dataset. The function \texttt{lm(medv ~ lstat, data=Boston)} fits a linear model $\text{medv} = \beta_0 + \beta_1 \text{lstat} + \epsilon$. The result \texttt{lm\_fit} contains the fitted coefficients and other information. \texttt{summary(lm\_fit)} prints the model summary, including estimates $\hat\beta_0, \hat\beta_1$, their standard errors, $t$-statistics and $p$-values (testing $H_0: \beta_j=0$), $R^2$, etc. For example, output might show:
+\noindent \textbf{Explanation:} We load the \texttt{MASS} library and the \texttt{Boston} dataset. The function \texttt{lm(medv ~ lstat, data=Boston)} fits a linear model $\text{medv} = \beta_0 + \beta_1 \text{lstat} + \epsilon$. The result \texttt{lm\_fit} contains the fitted coefficients and other information. \texttt{summary(lm\_fit)} prints the model summary, including estimates $\hat\beta_0, \hat\beta_1$, their standard errors, $t$-statistics and $p$-values (testing $H_0: \beta_j=0$), $R^2$, etc. For example, output might show:
 
 \begin{verbatim}
 Coefficients:
@@ -94,38 +115,41 @@ Coefficients:
 lstat       -0.9505    0.0387  -24.57   <2e-16 ***
 \end{verbatim}
 
-This indicates $\hat\beta_0 \approx 34.55$ and $\hat\beta_1 \approx -0.95$. So the fitted equation is $\widehat{\text{medv}} = 34.55 - 0.95 \times \text{lstat}$. The negative slope implies that higher \texttt{lstat} (more low-status population) is associated with lower median home value. The $p$-value is $<2e-16$, indicating the relationship is statistically significant.
+This indicates $\hat\beta_0 \approx 34.55$ and $\hat\beta_1 \approx -0.95$. So the fitted equation is $\widehat{\text{medv}} = 34.55 - 0.95 \times \text{lstat}$. The negative slope implies that higher \texttt{lstat} (more low-status population) is associated with lower median home value. The $p$-value is $<2e-16$, indicating the relationship is statistically significant. \\
 
-We can also obtain the coefficients directly with \texttt{coef(lm\_fit)} or confidence intervals for them using \texttt{confint(lm\_fit)}.
+\noindent We can also obtain the coefficients directly with \texttt{coef(lm\_fit)} or confidence intervals for them using \texttt{confint(lm\_fit)}.
 
-To visualize the fit:
-\begin{verbatim}
+To visualise the fit:
+\begin{lstlisting}
 plot(Boston$lstat, Boston$medv, col="blue",
      main="Linear Fit: medv vs lstat", 
      xlab="% Low Status (lstat)", ylab="Median Value (medv)")
 abline(lm_fit, col="red", lwd=2)
-\end{verbatim}
-This produces a scatterplot of the data and overlays the regression line in red.
+\end{lstlisting}
 
-\textbf{Interpreting the model:} For a 1\% increase in \texttt{lstat}, the model predicts a decrease of about $0.95$ in \texttt{medv} (in thousands of dollars). The intercept 34.55 is the predicted \texttt{medv} when \texttt{lstat}=0 (extrapolated baseline). The $R^2$ (about 0.544) tells us ~54.4\% of the variance in home value is explained by \texttt{lstat} in this simple linear model.
+\noindnt This produces a scatterplot of the data and overlays the regression line in red. \\
+
+\noindent \textbf{Interpreting the model:} For a 1\% increase in \texttt{lstat}, the model predicts a decrease of about $0.95$ in \texttt{medv} (in thousands of dollars). The intercept 34.55 is the predicted \texttt{medv} when \texttt{lstat}=0 (extrapolated baseline). The $R^2$ (about 0.544) tells us ~54.4\% of the variance in home value is explained by \texttt{lstat} in this simple linear model.
 
 \subsection{Multiple Linear Regression Theory}
 Multiple linear regression generalizes to $p$ predictors. The model:
 \[ Y = \beta_0 + \beta_1 X_1 + \cdots + \beta_p X_p + \varepsilon, \]
-fitted by least squares minimizing $\text{RSS} = \sum_{i=1}^n (y_i - \hat\beta_0 - \sum_{j=1}^p \hat\beta_j x_{ij})^2$. Interpretation of coefficients: $\beta_j$ is the expected change in $Y$ for a one-unit increase in $X_j$, holding all other predictors fixed.
+fitted by least squares minimizing $\text{RSS} = \sum_{i=1}^n (y_i - \hat\beta_0 - \hat{\beta}_1x_{i1} + ... + \hat\beta_px_{ip})^2$. Interpretation of coefficients: $\beta_j$ is the expected change in $Y$ for a one-unit increase in $X_j$, holding all other predictors fixed. \\
 
-Important considerations:
+\noindent Important considerations:
 \begin{itemize}
   \item \textbf{t-tests}: We test $H_0:\beta_j=0$ for each coefficient (given others in model). A small $p$-value indicates predictor $X_j$ contributes significantly (after accounting for others).
-  \item \textbf{F-test}: A global test whether at least one $\beta_j \neq 0$. It compares the full model to the intercept-only model.
+  \item \textbf{F-test}: A global test whether at least one $\beta_j \neq 0$. It compares the full model to the intercept-only model (answers if atleast one of hte predictors are useful in predicting the response).
   \item \textbf{Dummy variables}: Qualitative predictors are incorporated via dummy (indicator) variables. For example, a categorical variable with $k$ classes is encoded with $k-1$ dummy binary variables.
   \item \textbf{Interactions}: We can include interaction terms (e.g. $X_1 \times X_2$) to allow the effect of one predictor to depend on another.
   \item \textbf{Model fit}: $R^2$ still indicates proportion of variance explained (it always increases when adding predictors). Adjusted $R^2$ penalizes adding useless predictors.
 \end{itemize}
 
-\textbf{Pros:} Captures linear effects of multiple variables, enabling control for confounders. Inference allows testing each predictor’s effect. The model is easy to implement and interpret (coefficients as marginal effects).
+\noindent \textbf{Pros:} \\
+\noindent Captures linear effects of multiple variables, enabling control for confounders. Inference allows testing each predictor’s effect. The model is easy to implement and interpret (coefficients as marginal effects).
 
-\textbf{Cons:} Still assumes linear form, which may be too restrictive. Sensitive to multicollinearity (high correlation among predictors can inflate standard errors and make coefficient estimates unstable). Outliers or high-leverage points can distort the fit. If $p$ is large relative to $n$, overfitting can occur.
+\noindent \textbf{Cons:} \\
+\noindent Still assumes linear form, which may be too restrictive. Sensitive to multicollinearity (high correlation among predictors can inflate standard errors and make coefficient estimates unstable). Outliers or high-leverage points can distort the fit. If $p$ is large relative to $n$, overfitting can occur.
 
 \subsection{Multiple Linear Regression in R (Example)}
 Using the Boston data, suppose we include two predictors, \texttt{lstat} and \texttt{age}, to predict \texttt{medv}:
@@ -148,24 +172,21 @@ We can include all predictors using \texttt{medv ~ .} formula:
 lm_fit_full <- lm(medv ~ ., data = Boston)  # all 13 predictors
 summary(lm_fit_full)
 \end{verbatim}
-This yields a full model with all variables. We could then perform variable selection (discussed in Week 4) to simplify the model if needed.
+This yields a full model with all variables. We could then perform variable selection (discussed in Week 4) to simplify the model if needed. \\
 
-\textbf{Diagnostics:} We can examine diagnostic plots for linear regression:
+\noindent \textbf{Diagnostics:} We can examine diagnostic plots for linear regression:
 \begin{verbatim}
 par(mfrow=c(2,2))
 plot(lm_fit_full)
 \end{verbatim}
-This produces residual plots, Q-Q plot for residuals, scale-location plot, and leverage plot. We look for non-linear patterns (indicating model misspecification), non-constant variance, outliers, or high leverage points.
+This produces residual plots, Q-Q plot for residuals, scale-location plot, and leverage plot. We look for non-linear patterns (indicating model mis-specification), non-constant variance, outliers, or high leverage points. 
 
-These regression techniques assume roughly linear relationships and require caution if the relationships are highly non-linear or if there are extreme outliers. In Week 5 we will see methods for non-linear relationships, and in Week 4 we address model selection to choose an optimal subset of predictors.
-
-\section{Week 3: Linear Regression (Part II) and Resampling Methods}
 \subsection{Polynomial Regression and Model Flexibility}
 Often the linearity assumption is too restrictive. One way to model a non-linear relationship is to include transformations of predictors. \textbf{Polynomial regression} adds polynomial terms. For example, a quadratic model:
 \[ Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \varepsilon, \] 
-can capture curvature. Higher-degree polynomials (cubic, quartic, etc.) provide more flexibility.
+can capture curvature. Higher-degree polynomials (cubic, quartic, etc.) provide more flexibility. \\
 
-In R, we can use \texttt{poly()} or the $I()$ function to include polynomial terms. For example:
+\noindent In R, we can use \texttt{poly()} or the $I()$ function to include polynomial terms. For example:
 \begin{verbatim}
 lm_poly4 <- lm(medv ~ poly(lstat, 4), data=Boston)
 \end{verbatim}
@@ -174,25 +195,62 @@ fits a 4th-degree polynomial in \texttt{lstat}. Alternatively:
 lm_poly4_raw <- lm(medv ~ lstat + I(lstat^2) + I(lstat^3) + I(lstat^4),
                    data=Boston)
 \end{verbatim}
-includes powers of \texttt{lstat} explicitly (using $I()$ to inhibit formula interpretation). Polynomial terms are just one form of basis functions; others include piecewise polynomials and splines (Week 5).
+includes powers of \texttt{lstat} explicitly (using $I()$ to inhibit formula interpretation). Polynomial terms are just one form of basis functions; others include piecewise polynomials and splines. \\
 
-Including polynomial terms increases model flexibility (reduces bias) but also risk of overfitting (increased variance). One can use cross-validation (see below) to select the polynomial degree that optimizes test error.
+\noindent Including polynomial terms increases model flexibility (reduces bias) but also risk of overfitting (increased variance). One can use cross-validation (see below) to select the polynomial degree that optimizes test error. \\
 
-\textbf{Resampling methods} like cross-validation help determine model complexity. They do not create new models but provide a way to assess a given model’s performance on unseen data.
+\newpage
 
-\subsection{Cross-Validation (CV) Concepts}
-\textbf{Cross-validation} is a technique to estimate test error by splitting the data:
+\section{Resampling Methods}
+
+\noindent \textbf{Resampling methods} like cross-validation help determine model complexity. They do not create new models but provide a way to assess a given model’s performance on unseen data. \\
+
+\subsection{Validation Set Approach}
+\noindent Randomly dividing the available set of observations into two parts, a \textit{training set} and a \textit{validation set}. The model is fit on the training set, and the fitted model is used to predict the response for the observations in the validation set. \\
+
+\noindent Potential drawbacks:
 \begin{itemize}
-  \item \textbf{Validation set approach}: Split data into a training set and a hold-out validation set. Train the model on training data, evaluate on validation data. The estimated test MSE is the validation MSE. This can be unstable since it depends on one random split and it uses fewer observations for training (so estimates might be suboptimal).
-  \item \textbf{Leave-One-Out CV (LOOCV)}: A special case of $K$-fold CV with $K=n$. For each observation $i=1,\ldots,n$, fit the model on all data except observation $i$, then compute the error for $i$. Average these $n$ errors. LOOCV uses nearly the full dataset for training each time, so it's less biased. However, it can be computationally intensive if $n$ is large (though efficient formulas often exist). 
-  \item \textbf{$K$-Fold CV}: Split data into $K$ roughly equal parts (folds). Train on $K-1$ folds, test on the left-out fold; repeat $K$ times (each fold left out once). Average the $K$ error estimates. Common choices are $K=5$ or $10$ which typically balance bias and variance well (smaller $K$ yields less variance but more bias in the error estimate; larger $K$ (like LOOCV) yields less bias but higher variance in estimate). 
+    \item The validation estimate of the test error rate can be highly variable.
+    \item Only a subset of the observations are used to fit the model. Therefore, the validation set error rate may tend to overestimate the test error rate for the model fit on the entire data set.
 \end{itemize}
 
-CV is often used to tune hyperparameters (like polynomial degree, or regularization strength in ridge/lasso, etc.) by choosing the value that minimizes CV error.
+\subsection{Leave-One-Out Cross Validation (LOOCV)}
+\noindent Involves splitting the set of observations into two parts, but with the validation set only containing a single observation. \\
 
-\textbf{Bootstrap}: Another resampling method (unsupervised by $Y$) to assess accuracy of an estimator by sampling with replacement from the data and recalculating the estimator many times. The bootstrap can estimate the standard error of almost any statistic (e.g., the mean, a regression coefficient, etc.) by emulating the process of getting new data from the population.
+\begin{enumerate}
+    \item Using the observation $(x_1, y_1)$ as the validation set and $\{ (x_2,y_2),...,(x_n,y_n) \}$ as the training set to fit a model that generates a prediction $\hat y_1$ by $x_1$. Then $MSE_1 = (y_1 - \hat y_1)^2$.
+    \item Using observation $(x_2,y_2)$ as the validation set and $\{ (x_1,y_1),(x_3,y_3),...,(x_n,y_n) \}$ as the training set to fit a model that generates a prediction $\hat y_2$ by $x_2$. Then $MSE_2 = (y_2 - \hat y_2)^2$.
+    \item Repeat this by selecting every remaining observation as the validation observation and obtain $MSE_3,...,MSE_n$.
+    \item The LOOCV estiamte for the test MSE is then $CV_{(n)} = \frac{1}{n}\sum_{i=1}^{n}{MSE_i}$. If $n$ is large, this process is very time consuming.
+\end{enumerate} \phantom{i}
 
-We will see use cases of CV in model selection (Week 4) and of bootstrap in later topics (e.g., evaluating model stability). 
+\noindent \textbf{Advantages of LOOCV}:
+\begin{itemize}
+    \item LOOCV has much less bias than the validation set approach, since when fitting the method the training sets almost cover the whole data set. So, LOOCV tends not to overestimate the test error rate.
+    \item Validation set approach will yield different results when applied repeatedly. Performing LOOCV multiple times will always yield the same results, so no randomness.
+    \item For least squares linear or polynomial regression, there is a computational shortcut. $CV_{(n)} = \frac{1}{n}\sum_{i=1}^{n}\Big( \frac{y_i - \hat y_i}{1 - h_i} \Big)^2$. $h_i$ is the leverage statistic. In simple linear regression: $h_i = \frac{1}{n} + \frac{(x_i - \bar x)^2}{\sum_{j=1}^{n}{(x_j - \bar x)^2}}$.
+\end{itemize}
+
+\subsection{K-Fold Cross-Validation}
+\noindent Alternative to LOOCV. LOOCV is special case of this when $k=n$. Steps:
+\begin{enumerate}
+    \item Randomly dividing the set of observations into $k$ groups, or folds, of approximately equal size.
+    \item First fold is treated as a validation set, and the method is fit on the remaining $k-1$ folds. Then find $MSE_1$ using the validation set.
+    \item Repeat step 1 and 2 by choosing different folds as the validation set. Calculate $MSE_2,...,MSE_k$.
+    \item $CV_{(k)} = \frac{1}{k}\sum_{i=1}^{k}{MSE_i}$.
+\end{enumerate} \phantom{i}
+
+\subsubsection{Bias-variance trade-off}
+\noindent \textbf{Bias}: \\
+\noindent According to the amount of data used in fitting. Clearly, validation set approach has the highest bias, and LOOCV has the lowest. \\
+
+\noindent \textbf{Variance}: \\
+\noindent $k$-fold CV tends to have the lower variance than LOOCV if $k < n$. Since LOOCV is averaging outputs of $n$ highly correlated fitted models, while $k$-fold CV is averaging $k$ less correlated outputs. \\
+
+\noindent Overall, $k$-fold CV tends to give more accurate estimate of the test error rate than does LOOCV.
+
+\subsection{The Bootstrap}
+\noindent Used to quantify the uncertainty associated with a given estimator or statistical learning method. To assess accuracy of an estimator by sampling with replacement from the data and recalculating the estimator many times. The bootstrap can estimate the standard error of almost any statistic by emulating the process of getting new data from the population.
 
 \subsection{Resampling in R: Validation and LOOCV Example}
 As an example, we use the \texttt{Auto} dataset (from \texttt{ISLR} package) to illustrate validation set and LOOCV for polynomial regression. We try to predict \texttt{mpg} from \texttt{horsepower} with different polynomial degrees:
@@ -211,9 +269,9 @@ for(d in 1:5){
     cat("Degree", d, "Validation MSE:", val_MSE, "\n")
 }
 \end{verbatim}
-This code randomly splits the \texttt{Auto} data in half, then fits polynomial models of increasing degree on the training set and computes the validation MSE. Running this might show a decrease then increase in MSE, indicating an optimal complexity (e.g., degree 2 or 3 might minimize validation error).
+This code randomly splits the \texttt{Auto} data in half, then fits polynomial models of increasing degree on the training set and computes the validation MSE. Running this might show a decrease then increase in MSE, indicating an optimal complexity (e.g., degree 2 or 3 might minimize validation error). \\
 
-For LOOCV or $K$-fold CV, we can use the \texttt{cv.glm()} function from \texttt{boot} package:
+\noindent For LOOCV or $K$-fold CV, we can use the \texttt{cv.glm()} function from \texttt{boot} package:
 \begin{verbatim}
 library(boot)
 # Perform LOOCV for polynomial of degree 2
@@ -222,8 +280,6 @@ cv.err1 <- cv.glm(Auto, glm_fit, K = nrow(Auto))
 cv.err1$delta[1]   # this is the LOOCV MSE
 \end{verbatim}
 We could loop this to find the CV error for degrees 1 to 5 similarly. Alternatively, use $K$-fold by specifying $K=5$ or $10$ in \texttt{cv.glm} for faster approximate CV.
-
-These resampling techniques help us choose model complexity (e.g., which polynomial degree yields lowest test error) without needing a separate large test dataset.
 
 \section{Week 4: Linear Model Selection and Regularization}
 Thus far, we assumed all predictors should be in the model. However, including irrelevant predictors can increase variance and reduce interpretability. \textbf{Model selection} refers to choosing a subset of predictors that contribute most to $Y$. \textbf{Regularization} (shrinkage) methods impose penalties to prevent overfitting and can also perform variable selection.
@@ -375,31 +431,55 @@ We interpret similarly.
 
 In summary, Week 4's tools (\textbf{subset selection}, \textbf{ridge}, \textbf{lasso}, \textbf{PCR}, \textbf{PLS}) aim to improve prediction accuracy and interpretability by reducing the effective number of predictors or their impact. In an exam setting, be prepared to describe how each method works, their pros/cons, and possibly to carry out a small model selection or regularization procedure (for example, interpret a plot of CV error vs number of variables or vs $\lambda$ and identify the best model).
 
-\section{Week 5: Non-linear Models (Part I)}
-Linear models may be inadequate if relationships are nonlinear. Week 5 introduces \textbf{non-linear regression methods} that allow more flexible curves than straight lines.
+\section{Non-linear Models}
+\noindent Types:
+\begin{itemize}
+    \item Polynomial regression: extra predictors which raise original predictors to a power
+    \item Step functions: cut the range of a variable into $K$ regions in order to produce a qualitative varaiable
+    \item Regression splines: divide the range of $X$ into $K$ distinct regions. Within each region, a polynomial function is fit to the data.
+    \item Smoothing splines: result from minimising a RSS subject to a smoothness penalty
+    \item Local regression: regions of a spline that are allowed to overlap (in a smooth way)
+    \item Generalised additive models (GAMs): extend the models above to deal with multiple predictors
+\end{itemize}
 
-\subsection{Polynomial and Step Functions}
-We already discussed \textbf{polynomial regression} as one simple way to introduce non-linearity by adding $X^2, X^3, ...$ terms. However, polynomials of high degree can behave erratically at boundaries and can be overly global (change in one region affects entire curve).
+\subsection{Polynomial Regression}
+\noindent Defined by:
+$$y_i = \beta_0 + \beta_1x_i + \beta_2x_i^2 + ... + \beta_dx_i^d + \varepsilon_i$$
+\noindent Coefficients estimated by using least squares approach because it can be treated as a linear model with predictors $x, x^2,...,x^d$. \\
 
-\textbf{Piecewise polynomials} and \textbf{splines} improve local flexibility:
-- A \textbf{step function} is an extreme case: piecewise constant. For example, we can cut a variable into bins and model jumps at cutpoints. Using \texttt{cut()} in R creates such categorical bins.
-- A \textbf{piecewise polynomial regression} fits separate low-degree polynomials in different regions of $X$ partitioned by \textbf{knots} (boundary points). For continuity, we often require the pieces to connect at the knots (continuous first, perhaps also continuous first derivative = smooth join).
+\noindent \textbf{Calculating CI of $\hat y$}: For a given value $x_0$, $\hat{y}_0 = \hat{\beta}_0 + \sum_{j=1}^{d}{\hat{\beta}_j x_0^j}$. Let $\hat{\boldsymbol{C}}$ denote the $(d+1) \times (d+1)$ covariance matrix of the $\hat\beta_j$ and let $\ell_0 = (1,x_0,x_0^2,...,x_0^d)$. Then $\text{Var}(\hat{y}_0) = \ell_0\hat{\boldsymbol{C}}\ell_0^\top$. Then the $95\%$ CI for $\hat y_0$ is: $\hat{y}_0 \pm 2\sqrt{\text{Var}(\hat y _0)}$
 
-A \textbf{regression spline} is a piecewise polynomial of degree $d$ that is smooth at the knots (typically continuous up to second derivative at knots for cubic splines). Commonly used are:
-- \textbf{Cubic splines}: piecewise degree-3 polynomials, continuous up to second derivative at knots.
-- \textbf{B-spline basis}: A basis of compactly-supported piecewise polynomials used to express any spline curve.
+\subsection{Step Functions}
+\noindent Break $X$ into ranges using step functions
+\begin{itemize}
+    \item Create cutpoints $c_1,...,c_K$ in range of $X$, and construct $K+1$ new variables. At most one of $C_i$ can be $0$, also $\sum_{i=0}^{K}C_i(x) = 1$:
+        \begin{align*}
+            &C_0(x) = I(X < c_1) \\
+            & \quad \quad \vdots \\
+            &C_{K-1}(x) = I(c_{K-1} \leq X < c_k) \\
+            &C_K(x) = I(X \geq c_K)
+        \end{align*}
+    \item Use least squares to fit a linear model using $C_1(X),...C_K(X)$ as predictors. \textit{Note} that $C_0(X)$ is not used as it is redundant with the intercept being in the model.
+    \item When $X < c_1$, all predictors are $0$ so $\beta_0$ is the mean value of $Y$ for $X < c_1$
+    \item $\beta_j$ represents the average increase in the response for $X$ in $[c_j, c_{j+1})$ relative to $X < c_1$
+    \item In general, the step function may not describe the underlying trends properly, unless there are natural breakpoints in the predcitors
+\end{itemize}
 
-We often use software to fit splines by including transformed variables. In R, \texttt{splines::bs()} can generate a B-spline basis for specified knots or degrees of freedom.
+\subsection{Basis Functions}
+\noindent Let a family of functions be applied to a predictor $X$: $b_1(X),...,b_K(x)$. We now fit $y_i = \beta_0 + \beta_1b_1(x_i)+...+\beta_kb_k(x_i) + \varepsilon_i$. Use least squares to estimate the unknown regression coefficients. If $b_j(x) = x^j \implies$ polynomial regression, or if $b_j(x) = I(c_j \leq x < c_{j+1}) \implies $ piecewise-constant regression.
 
-For example, to fit a spline of degree 3 with knots at 25, 40, 60 on \texttt{age} in the Wage data:
+\subsubsection{Basis functions in R}
+\noindent We often use software to fit splines by including transformed variables. In R, \texttt{splines::bs()} can generate a B-spline basis for specified knots or degrees of freedom. \\
+
+\noindent For example, to fit a spline of degree 3 with knots at 25, 40, 60 on \texttt{age} in the Wage data:
 \begin{verbatim}
 library(ISLR); library(splines)
 fit_spline <- lm(wage ~ bs(age, knots=c(25,40,60)), data=Wage)
 summary(fit_spline)
 \end{verbatim}
-This creates a piecewise cubic spline with three internal knots. The model will have (degree+ number of knots) basis functions (here 3+3=6 basis functions plus an intercept).
+\noindent This creates a piecewise cubic spline with three internal knots. The model will have (degree+ number of knots) basis functions (here 3+3=6 basis functions plus an intercept). \\
 
-\textbf{Plotting a spline fit:}
+\noindent \textbf{Plotting a spline fit:}
 \begin{verbatim}
 age_grid <- seq(from=min(Wage$age), to=max(Wage$age))
 pred <- predict(fit_spline, newdata=list(age=age_grid), se=TRUE)
@@ -408,62 +488,174 @@ lines(age_grid, pred$fit, col="blue", lwd=2)
 lines(age_grid, pred$fit + 2*pred$se.fit, col="blue", lty="dashed")
 lines(age_grid, pred$fit - 2*pred$se.fit, col="blue", lty="dashed")
 \end{verbatim}
-This shows a smooth piecewise curve fit to the data with confidence bands (the dashed lines at $\pm 2 SE$).
+\noindent This shows a smooth piecewise curve fit to the data with confidence bands (the dashed lines at $\pm 2 SE$).
 
-Advantages of splines: more local flexibility, no wild oscillations as a single high-degree polynomial might do, and we can control smoothness. They involve linear regression on transformed variables, so all inference tools still apply approximately (though interpretation is not as simple as a single coefficient's effect).
+\subsection{Regression Splines}
+\subsubsection{Piecewise polynomials}
+\noindent A piecewise cubic polynomial fits $y_i = \beta_0 + \beta_1 x_i + \beta_2x_i^2 + \beta_3 x_i^3 + \varepsilon_i$. The points where coefficients change are called knots. E.g. A single knot at point $c$:
+\[
+y_i =
+\begin{cases}
+\beta_{01} + \beta_{11}x_i + \beta_{21}x_i^2 + \beta_{31}x_i^3 + \varepsilon_i & \text{if } x_i < c \\
+\beta_{02} + \beta_{12}x_i + \beta_{22}x_i^2 + \beta_{32}x_i^3 + \varepsilon_i & \text{if } x_i \geq c
+\end{cases}
+\]
+\noindent Using more knots in the models leads to a more flexible piecewise polynomial.
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{Regression Splines Visualisations.png}
+\end{center}
 
-\textbf{Selecting knot number/placement:} We can choose number of degrees of freedom for a spline (which indirectly sets number of knots) and use cross-validation to pick it. Alternatively, use \textbf{smoothing splines} which place a knot at every unique $x$ but penalize roughness with a smoothing parameter (see below).
+\subsubsection{Constraints and splines}
+\begin{itemize}
+    \item The fitted curve must be continuous
+    \item The fitted curve should be very smooth
+        \begin{itemize}
+            \item For cubic spline: the first and second derivatives of the piecewise cubic function need to be continuous at each know
+            \item For $d$-degree spline: the continuity in derivatives is required for up to degree $d-1$ at each knot
+        \end{itemize}
+    \item Each constraint we impose on the piecewise polynomials reduce on degree of freedom
+    \item A \textit{natural spline} is a regression spline with linear boundary constraints: the spline function is required to be linear in the region where $X$ is the smaller than the smallest know, or larger than the largest knot
+\end{itemize}
 
-\subsection{Smoothing Splines and Local Regression}
-A \textbf{smoothing spline} is another approach: it fits a function $f(x)$ that balances two goals: minimize residual error and make $f(x)$ as smooth as possible. The usual criterion: minimize $\sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \int f''(t)^2 dt$, where the second term penalizes curvature. There is an equivalent notion that for each $\lambda$ there is a certain degrees of freedom (df) for the smoother. Analysts often select the effective df (or $\lambda$) via cross-validation. A smoothing spline can be fit in R by \texttt{smooth.spline()} and one can specify \texttt{df} or $\lambda$ indirectly.
+\subsubsection{Choosing the number and location of knots}
+\begin{enumerate}
+    \item Place more knots in places where we feel the function might vary most rapidly (place fewer knots where it seems more stable)
+    \item Place knots in a uniform fashion. Firstly, specify the desired degrees of freedom, and then have software place the corresponding number of knots at uniform quantiles of the data.
+\end{enumerate} \phantom{i}
 
-Example:
+\noindent \textbf{CV to choose optimal number of knots}
+\begin{enumerate}
+    \item Remove a portion of the data (e.g. $10\%$, then fit a spline with a certain number of knots to the remaining data
+    \item Use fitted spline to make predictions for the held-out data
+    \item Repeat steps 1-2 until each observation has been held-out once, and then compute the overall cross-validated RSS
+    \item Repeat steps 1-3 for different number of knots $K$
+    \item Value of $K$ that gives the smallest RSS is the optimal one
+\end{enumerate} \phantom{i}
+
+\noindent \textbf{Regression splines vs polynomial regression}
+\begin{itemize}
+    \item To increase flexibility, polynomial regression must use a high degree, while splines can simply increase number of knots but keeping the degree fixed. The latter generally produces more stable estimates
+    \item Splines also allow us to adjust the position of the knots to create more flexibility. The polynomial regression doesn't have this feature
+\end{itemize}
+
+\subsection{Smoothing Splines}
+\noindent Find some function $g(x)$ that can fit the observed data well. We need to consider both adherence and smoothness. \\
+
+\noindent Adherence measured by the $RSS = \sum_{i=1}^{n}{(y_i - g(x_i))^2}$, and the smoothness can be measured by $\int g''(t)^2 \ dt$. Since there is a trade-off between adherence and smoothness, we construct the following objective function (with $\lambda \geq 0$): $\sum_{i=1}^{n}(y_i - g(x_i))^2 + \lambda \int g''(t)^2 \ dt$ (like \textit{loss} + \textit{penalty}). \\
+
+\noindent \textbf{Some remarks:}
+\begin{itemize}
+    \item $\lambda = 0$: smoothness term has no effect. $g$ will be very jumpy and will exactly interpolate the training observations
+    \item $\lambda \rightarrow \infty$, $g$ will be perfectly smooth
+    \item So $\lambda$ controls the bias-variance trade-off of the smoothing spline
+    \item Smoothing spline can be shown to be a nutral cubic spline with knots at the unique values of $x_1,...,x_n$
+\end{itemize} \phantom{i}
+
+\noindent \textbf{The effective degrees of freedom}:
+\begin{itemize}
+    \item $\lambda$ controls the smoothness of the spline, and hence hte effective degrees of freedom
+    \item When $\lambda$ increases from $0$ to $\infty$, the effective degrees of freedom, denoted by $df_\lambda$, decrease from $n$ to $2$
+    \item $df_\lambda$ is a measure of the flexibility of the smoothing spline
+\end{itemize} \phantom{i}
+
+\noindent \textbf{Choosing the smoothing parameter $\lambda$:} Find a value of $\lambda$ that makes the CV RSS as small as possible. LOOCV can also be computed for smoothing splines, using the following formula $RSS_{cv}(\lambda) = \sum_{i=1}^{n}{\Big[ \frac{y_i - \hat{g}_{\lambda}(x_i)}{1 - \{ \boldsymbol{S}_\lambda \}_{ii}} \Big]^2}$, where $\hat{\boldsymbol{g}}_\lambda = \boldsymbol{S}_{\lambda} \boldsymbol{y}$
+
+\subsubsection{Smoothing splines in R}
+\noindent A smoothing spline can be fit in R by \texttt{smooth.spline()} and one can specify \texttt{df} or $\lambda$ indirectly. \\
+
+\noindent Example:
 \begin{verbatim}
 fit_ss <- smooth.spline(Wage$age, Wage$wage, df=16)
 fit_ss2 <- smooth.spline(Wage$age, Wage$wage, cv=TRUE)
 fit_ss2$df    # df selected by CV
 \end{verbatim}
-The second call chooses df by CV (checking many $\lambda$, picking that yields lowest CV error). Smoothing splines automatically choose many knots (at all data points) but with appropriate shrinkage, resulting in a smooth fit.
+\noindent The second call chooses df by CV (checking many $\lambda$, picking that yields lowest CV error). Smoothing splines automatically choose many knots (at all data points) but with appropriate shrinkage, resulting in a smooth fit.
 
-\textbf{Local Regression (LOESS):} A different approach that is entirely non-parametric: to get $\hat f(x_0)$, local regression fits a low-degree polynomial (often just linear) to data within a neighborhood of $x_0$ (determined by a span of closest points) using weighted least squares (heavier weight for points nearest to $x_0$). This produces a smooth curve that follows the data locally. The user chooses the span (e.g., 20\% of data). LOESS can model quite arbitrary smooth shapes without specifying knots or basis functions.
+\subsection{Local Regression}
+\noindent Local regression at $X = x_0$:
+\begin{enumerate}
+    \item Gather the fraction $s=\frac{k}{n}$ of training points whose $x_i$ are closest to $x_0$
+    \item Assign a weight $K_{i0} = \omega \cdot \frac{x_i - x_0}{h(x_0)}$ to each point in this neighbourhood, where $h(x_0)$ is the bandwidth, the distance from $x_0$ to its $k$th closest $x_i$
+    \item Fit a weighted least squares regression of the $y_i$ on the $x_i$ using the aforementioned weights, by finding $\hat\beta_0$ and $\hat\beta_1$ that minimise $\sum_{i=1}^{n}{K_{i0}(y_i - \beta_0 - \beta_1x_i)^2}$
+    \item The fitted value at $x_0$ is given by $\hat{f}(x_0) = \hat\beta_0 + \hat\beta_1 x_0$
+\end{enumerate} \phantom{i} \\
+\noindent $s$ controls the flexibility of the non-linear fit. The smaller the $s$, the more local and wiggly will be our fit; alternatively, a very large $s$ will lead to a global fit to the data using all of the training observations. CV can be used to choose $s$. \\
 
-In R, \texttt{loess()} or \texttt{ggplot2::geom\_smooth(method='loess')} can do this. Example:
+\noindent \textbf{Why Local Regression?}
+\begin{itemize}
+    \item Adapts well to bias problems at boundaries and in regions of high curvature
+    \item Easy to understand and interpret
+    \item Methods have been developed that provide fast computation for one or more independent variables
+    \item Very simple, can be used to work for different distributional assumptions
+    \item A local model enables derivation of response adaptive methods for span value and polynomial order selection in a straightforward manner
+\end{itemize} \phantom{i}
+
+\noindent \textbf{How to choose polynomial degree?}: The choice is a bias-variance trade off. A higher degree will produce a less biased, but more variable estimate than a lower degree one. \\
+
+\noindent \textbf{How to choose the weight function?} Want to consider a weight function $\omega(u)$ that are peaked at $u=0$ and that decay smoothly to $0$ as $u$ increases. A smooth weight function results in a smoother estimate. We also want a weight function that is nonzero only on a bounded interval, helping with computation speed.
+
+\subsubsection{Local regression in R}
+\noinednt In R, \texttt{loess()} or \texttt{ggplot2::geom\_smooth(method='loess')} can do this. Example:
 \begin{verbatim}
 fit_lo <- loess(wage ~ age, data=Wage, span=0.2)
 \end{verbatim}
-Span = 0.2 means 20\% of points influence each local fit. A smaller span yields wigglier curve (low bias, high variance), a larger span yields smoother curve (higher bias, low variance).
 
-**Pros and Cons of these Non-linear Methods:**
-- They capture complex patterns that linear models miss (low bias for non-linear truth).
-- But they can overfit if too flexible (need to tune df or span).
-- Interpretation is more difficult – we often rely on plots rather than coefficients.
-- For extrapolation beyond data range, spline/loess estimates can be unreliable (at edges, polynomial might behave badly; local regression cannot extrapolate at all beyond range).
+\subsection{Generalised Linear Models (GLMs)}
+\begin{itemize}
+    \item \textit{Probability distribution}: Instead of assuming normal distribution, GLMs work with distributions in the exponential family (e.g. normal, Poisson, binomial, and gamma)
+    \item \textit{Model for the mean}: The mean is a linear function of hte predictors, $\boldsymbol{X}$, $E[Y] = f(\boldsymbol{X})$. In GLMs some smooth monotonic transformation of the mean is a linear function of $\boldsymbol{X}$. $g(E[Y]) = f(\boldsymbol{X})$.
+\end{itemize} \phantom{i}
 
-\subsection{Generalized Additive Models (GAMs)}
-GAMs extend multiple linear regression by allowing each variable to have its own non-linear effect, then adding them up:
-\[ Y = \beta_0 + f_1(X_1) + f_2(X_2) + \cdots + f_p(X_p) + \varepsilon, \]
-where each $f_j$ is a flexible function (spline, polynomial, etc.) of the single predictor $X_j$. GAMs retain additivity, which keeps interpretation somewhat manageable (e.g., we can plot $f_j(X_j)$ vs $X_j$ to see effect of $X_j$ on $Y$, holding others fixed). But they allow each $X_j$ to affect $Y$ non-linearly.
+\noindent \textbf{Why GLMs:}
+\begin{itemize}
+    \item Easy to estimate standard errors, constructing CIs, testing, model selection and other statistical features
+    \item GLMs are vary common in many areas of statistics, so they are constantly improving and we can draw upong developments from many industries
+    \item There is standard software for fitting GLMs
+    \item Although there is standard software companies create their own specialised GLMs so there is space to innovate
+\end{itemize} \phantom{i}
 
-For example, a GAM might be:
+\noindent \textbf{The exponential family and the link function:} \\
+\noindent GLMs involve distributions that can be expressed in exponential form: $f(y|\theta, \phi) = e^{\frac{y\theta - b(\theta)}{\phi} + c(y,\theta)}$, $\theta$ is the canonical parameter, and $\phi$ is the dispersion parameter (that plays a role in defining the variance of $y$). \\
+
+\noindent The canonical parameter $\theta$ is a function of $\mu$, denoted by $\theta(\mu)$, the canconical link function:
+\begin{itemize}
+    \item Normal: $\theta(\mu) = \mu$
+    \item Poisson: $\theta(\mu) = \ln(\mu)$
+    \item Exponential, gamma: $\theta(\mu) = -\mu^-1$
+    \item Categorical, binomial, multinomial: $\theta(\mu) = \ln\Big( \frac{\mu}{1-\mu} \Big)$
+\end{itemize}
+
+\subsection{Generalised Additive Models (GAMs)}
+\noindent GAMs extend multiple linear regression by allowing each variable to have its own non-linear effect, then adding them up:
+$$y_i = \beta_0 + f_1(x_{i1}) + f_2(x_{i2}) + ... + f_p(x_{ip}) + \varepsilon_i$$
+\noindent Could use and combine any non-linear methods such as local regression, polynomial regression, splines, or any combination of the approaches discussed. Also could use qualitative variables using dummy variables.
+\subsubsection{Pros and Cons}
+\noindent \textbf{Pros}
+\begin{itemize}
+    \item GAM allow non-linear $f_j$ to each $X_j$ and does it automatically, so we don't need to manually try out many different transformations.
+    \item Non-linear fit could make more accurate predictions.
+    \item Since model is additive, we can still examine the effect of each $X_j$ on $Y$ individually while holding all the other variables fixed. Hence GAMs provid useful inference.
+    \item Smoothness of function $f_j$ for $X_j$ can be summarised via degrees of freedom.
+\end{itemize} \phantom{i}
+
+\noindent \textbf{Cons}
+\begin{itemize}
+    \item Restricted to be additive. Imporatnt interactions may be missed, however we can add interaction terms to the GAM model by including additional predictors of the form $X_j \times X_k$. In addition we can add low-dimensional interaction functions of the form $f_{jk}(X_j, X_k)$; such terms can be fit using two-dimensional smoothers such as local regression.
+\end{itemize}
+
+\subsubsection{GAMs in R}
+\noindent For example, a GAM might be:
 \[ \widehat{\text{wage}} = \beta_0 + f_1(\text{year}) + f_2(\text{age}) + f_3(\text{education}), \]
-with $f_1, f_2$ as splines and $f_3$ as a factor effect (education is qualitative with categories, which GAM handles as dummy functions).
+with $f_1, f_2$ as splines and $f_3$ as a factor effect (education is qualitative with categories, which GAM handles as dummy functions). \\
 
-In R, using package \texttt{gam} (or \texttt{mgcv} for a more modern approach):
+\noindent In R, using package \texttt{gam} (or \texttt{mgcv} for a more modern approach):
 \begin{verbatim}
 library(gam)
 gam_fit <- gam(wage ~ s(year, 4) + s(age, 5) + education, data=Wage)
 summary(gam_fit)
 plot(gam_fit, se=TRUE, col="blue")
 \end{verbatim}
-Here \texttt{s(year,4)} uses a smoothing spline or basis with df=4 for year, \texttt{s(age,5)} uses df=5 for age. The \texttt{plot} function will show the estimated $f_1(\text{year})$ and $f_2(\text{age})$ curves with confidence bands. The summary can give approximate significance of each $f_j$ (via an $F$ test comparing to a flat function).
-
-GAMs are very useful for combining multiple non-linear effects, and can also include linear terms or interactions if specified. One limitation is GAMs are additive, so they don't automatically model interactions between variables (though you can manually add interaction terms or use tensor product smooths for interacting effects, which is advanced).
-
-**Pros:** More flexible than linear models, but more interpretable than a fully generic black-box because of the additive structure. We can test each $f_j$ for contribution (e.g., via ANOVA or summary of gam).
-
-**Cons:** Still assumes additivity (no interactions unless explicitly added). If there's a strong interaction between $X_1$ and $X_2$, an additive model won't capture it. Also, one must choose the smoothing for each term (though some algorithms can do it automatically via GCV or similar).
-
-In summary, Week 5 taught us tools to model non-linear relationships: using polynomial terms, splines (including smoothing splines), local regression, and GAMs to combine multiple such fits. For the exam, remember how these methods fundamentally work (e.g., what is a spline, how does loess achieve flexibility, concept of GAM structure) and their pros/cons. You might be asked, for example, how to handle a clearly nonlinear $X$-$Y$ relationship or to interpret a GAM plot.
+\noindent Here \texttt{s(year,4)} uses a smoothing spline or basis with df=4 for year, \texttt{s(age,5)} uses df=5 for age. The \texttt{plot} function will show the estimated $f_1(\text{year})$ and $f_2(\text{age})$ curves with confidence bands. The summary can give approximate significance of each $f_j$ (via an $F$ test comparing to a flat function).
 
 \section{Logistic Regression and Bayes Theorem}
 
@@ -1134,10 +1326,11 @@ Given that, probably exam expects:
         \end{itemize}
 \end{itemize} \phantom{i}
 
-\noindent \textbf{Role of $\boldsymbol{C}$ in bias-variance trade-off (opposite interpretation in R!):}
+\noindent \textbf{Role of $\boldsymbol{C}$ in bias-variance trade-off (opposite interpretation in R called *cost*!):}
 \begin{itemize}
-    \item When $C$ is small, we seek narrow margins that are rarely violated. Classifier that is highly fit to data, low bias but high variance.
-    \item When $C$ is larger, margin is wider and we allow more violations. Easier to obtain a classifier, potentially more biased but may have lower variance.
+    \item When $C$ is small (cost is large), we seek narrow margins that are rarely violated. Classifier that is highly fit to data, low bias but high variance.
+    \item When $C$ is larger (cost is small), margin is wider and we allow more violations. Easier to obtain a classifier, potentially more biased but may have lower variance.
+    \item *In exam explain cost, rather then explaining C
 \end{itemize}
 
 \subsection{Support Vector Machines}
@@ -1192,7 +1385,9 @@ Enlarge the feature space to get a non-linear decision boundary. Can be done by 
         \begin{itemize}
             \item Works really well with a clear margin of separation
             \item Effective in high dimensional spaces
-            \item Only uses a subset f training data in decision function (i.e. support vectors), so it is also memory efficient.
+            \item Only uses a subset of training data in decision function (i.e. support vectors), so it is also memory efficient.
+            \item Robust to outliers
+            \item Can capture non-linear relationships
         \end{itemize}
     \item \textbf{Cons:}
         \begin{itemize}
@@ -1255,21 +1450,6 @@ plot(perf)
 This is more detail than likely needed, but it demonstrates how to evaluate an SVM across thresholds (since SVM naturally gives distance from boundary as a score).
 
 \section{Unsupervised Learning Methods (PCA and Clustering))}
-Week 10 wrapped up SVM (introducing kernels thoroughly) and began \textbf{Unsupervised Learning} with \textbf{PCA}.
-
-\subsection{SVM with Kernels Recap}
-We already integrated most in Week 9 discussion. At this point, just to reiterate main formulas for kernels:
-- A kernel implicitly defines a mapping $\Phi(x)$ and $K(x_i, x_j) = \Phi(x_i)\cdot \Phi(x_j)$.
-- The polynomial kernel of degree $d$: $K(x,z)=(1+x^T z)^d$ yields SVM modeling interactions up to $d$-th order between features (like all poly terms).
-- Radial kernel: $K(x,z)=\exp(-\gamma ||x-z||^2)$. This can create very complex boundaries, essentially each SV can carve out a little bump of influence: classifying around that point.
-
-In training RBF SVM, $\gamma$ influences how many support vectors you'll get typically:
-- If $\gamma$ is too large (very local), need many SV to cover data pattern.
-- If $\gamma$ is too small (very smooth), can miss some complexity.
-
-Tuning both $(C, \gamma)$ is important. Usually via grid search with CV.
-
-Week 10 likely concluded SVM part fairly quickly and then started unsupervised.
 
 \subsection{Principal Components Analysis (PCA) [Unsupervised]}
 PCA is unsupervised, meaning it uses only $X$ (no $Y$). It finds new features:
@@ -1475,10 +1655,6 @@ cv_tree <- cv.tree(tree_fit, FUN=prune.misclass)
 prune_tree <- prune.misclass(tree_fit, best=<size>)
     \end{verbatim}
     Then plot the pruned tree. Use \verb|predict(prune_tree, newdata, type="class")| for classifications.
-    
-    \item \textbf{Bagging/Random Forest (randomForest package):} \\ \verb|randomForest(y ~ ., data=..., mtry=<p> or <sqrt(p)>, importance=TRUE)|. After fitting, \verb|importance(rf_model)| gives variable importance scores. (Bagging is random forest with \texttt{mtry = p}). Use \verb|predict(rf_model, newdata)| to get predictions.
-    
-    \item \textbf{Boosting (gbm package):} \\ \verb|gbm(y ~ ., data=..., distribution="bernoulli", n.trees=5000, interaction.depth=4)| etc. (Only if covered; might not be heavily emphasized).
     
     \item \textbf{Support Vector Machine (e1071 package):} \\ \verb|svm_fit <- svm(y ~ ., data=..., kernel="radial", gamma=..., cost=..., scale=TRUE)|. \texttt{scale=TRUE} standardizes features (important if on different scales). After fitting, use \verb|predict(svm_fit, newdata)| to get classes. Use \\ \verb|tune(svm, y ~ ., data=..., ranges=list(cost=..., gamma=...))| for cross-validation to find optimal parameters.
     
